@@ -1,44 +1,156 @@
-<!DOCTYPE html>
-<html>
+ <!DOCTYPE html>
+<html lang="en">
 <head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>MellyFX Trading Bot</title>
 
 <style>
+*{
+box-sizing:border-box;
+}
+
 body{
-  margin:0;
-  padding:20px;
-  background:#0b1220;
-  color:white;
-  font-family:Arial,sans-serif;
+margin:0;
+padding:15px;
+background:#07111f;
+color:white;
+font-family:Arial,sans-serif;
 }
+
 .container{
-  max-width:500px;
-  margin:auto;
+max-width:520px;
+margin:auto;
 }
+
+h1{
+text-align:center;
+margin-bottom:5px;
+}
+
+.subtitle{
+text-align:center;
+color:#9ca3af;
+margin-bottom:20px;
+}
+
 .card{
-  background:#151f32;
-  padding:20px;
-  border-radius:15px;
-  margin-bottom:15px;
+background:#111c2d;
+border-radius:15px;
+padding:18px;
+margin-bottom:15px;
+box-shadow:0 4px 15px rgba(0,0,0,.25);
 }
-h1{text-align:center;}
-select,button{
-  width:100%;
-  padding:14px;
-  margin-top:10px;
-  border:0;
-  border-radius:8px;
-  font-size:16px;
+
+label{
+display:block;
+margin:12px 0 7px;
+color:#cbd5e1;
 }
-.start{background:#16a34a;color:white;}
-.stop{background:#dc2626;color:white;}
-.data{
-  font-size:18px;
-  margin:12px 0;
+
+select,
+input,
+button{
+width:100%;
+padding:13px;
+border-radius:9px;
+border:none;
+font-size:16px;
 }
-.green{color:#22c55e;}
-.red{color:#ef4444;}
+
+select,
+input{
+background:#f8fafc;
+color:#111827;
+}
+
+button{
+margin-top:10px;
+font-weight:bold;
+cursor:pointer;
+}
+
+.start{
+background:#16a34a;
+color:white;
+}
+
+.stop{
+background:#dc2626;
+color:white;
+}
+
+.status{
+padding:12px;
+border-radius:9px;
+background:#1e293b;
+margin-top:12px;
+text-align:center;
+}
+
+.connected{
+color:#22c55e;
+}
+
+.disconnected{
+color:#ef4444;
+}
+
+.signal{
+text-align:center;
+font-size:22px;
+font-weight:bold;
+padding:15px;
+border-radius:10px;
+background:#1e293b;
+margin-top:10px;
+}
+
+.grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:8px;
+}
+
+.stat{
+background:#1e293b;
+padding:10px;
+border-radius:8px;
+text-align:center;
+}
+
+.stat small{
+display:block;
+color:#94a3b8;
+margin-bottom:4px;
+}
+
+.stat strong{
+font-size:18px;
+}
+
+.digit-table{
+width:100%;
+border-collapse:collapse;
+margin-top:10px;
+}
+
+.digit-table td{
+padding:7px;
+border-bottom:1px solid #263449;
+}
+
+.highlight{
+font-weight:bold;
+}
+
+.footer{
+text-align:center;
+color:#64748b;
+font-size:12px;
+margin-top:20px;
+}
 </style>
 </head>
 
@@ -48,193 +160,708 @@ select,button{
 
 <h1>🚀 MellyFX Trading Bot</h1>
 
+<div class="subtitle">
+Digit Analysis Dashboard
+</div>
+
 <div class="card">
 
-<div class="data">
+<div>
 Connection:
-<strong id="connection">Connecting...</strong>
+<strong id="connection" class="disconnected">
+Connecting...
+</strong>
 </div>
 
-<label>Market</label>
+<label>Select Volatility Market</label>
 
 <select id="market">
-<option value="1HZ10V">Volatility 10 Index</option>
-<option value="1HZ25V">Volatility 25 Index</option>
-<option value="1HZ50V">Volatility 50 Index</option>
-<option value="1HZ75V">Volatility 75 Index</option>
-<option value="1HZ100V">Volatility 100 Index</option>
+<option>Loading Volatility markets...</option>
 </select>
 
-<div class="data">
+<div class="status">
 Latest Price:
 <strong id="price">--</strong>
-</div>
-
-<div class="data">
+<br><br>
 Latest Digit:
 <strong id="digit">--</strong>
 </div>
 
-<button class="start" onclick="startBot()">▶ START BOT</button>
-<button class="stop" onclick="stopBot()">⏹ STOP BOT</button>
-
-<div class="data">
-Bot Status:
-<strong id="status">Stopped</strong>
 </div>
 
-</div>
 
 <div class="card">
 
-<h3>Digit Statistics</h3>
+<h3>📊 Digit Statistics</h3>
 
-<div id="stats">
-0: 0%<br>
-1: 0%<br>
-2: 0%<br>
-3: 0%<br>
-4: 0%<br>
-5: 0%<br>
-6: 0%<br>
-7: 0%<br>
-8: 0%<br>
-9: 0%
+<div class="grid">
+
+<div class="stat">
+<small>0</small>
+<strong id="d0">0%</strong>
+</div>
+
+<div class="stat">
+<small>1</small>
+<strong id="d1">0%</strong>
+</div>
+
+<div class="stat">
+<small>2</small>
+<strong id="d2">0%</strong>
+</div>
+
+<div class="stat">
+<small>3</small>
+<strong id="d3">0%</strong>
+</div>
+
+<div class="stat">
+<small>4</small>
+<strong id="d4">0%</strong>
+</div>
+
+<div class="stat">
+<small>5</small>
+<strong id="d5">0%</strong>
+</div>
+
+<div class="stat">
+<small>6</small>
+<strong id="d6">0%</strong>
+</div>
+
+<div class="stat">
+<small>7</small>
+<strong id="d7">0%</strong>
+</div>
+
+<div class="stat">
+<small>8</small>
+<strong id="d8">0%</strong>
+</div>
+
+<div class="stat">
+<small>9</small>
+<strong id="d9">0%</strong>
 </div>
 
 </div>
 
 </div>
+
+
+<div class="card">
+
+<h3>🎯 Strategy Analysis</h3>
+
+<div class="grid">
+
+<div class="stat">
+<small>Digits 0–2</small>
+<strong id="under2">0%</strong>
+</div>
+
+<div class="stat">
+<small>Digits 7–9</small>
+<strong id="over7">0%</strong>
+</div>
+
+</div>
+
+<br>
+
+<div class="stat">
+<small>Strongest Digit</small>
+<strong id="strongest">--</strong>
+</div>
+
+<div class="signal" id="signal">
+⏸️ WAIT
+</div>
+
+</div>
+
+
+<div class="card">
+
+<h3>⚙️ Bot Controls</h3>
+
+<label>Stake</label>
+
+<input
+id="stake"
+type="number"
+value="1"
+min="0.35"
+step="0.01"
+>
+
+<button class="start" onclick="startBot()">
+▶ START ANALYSIS
+</button>
+
+<button class="stop" onclick="stopBot()">
+⏹ STOP
+</button>
+
+<div class="status">
+Bot:
+<strong id="botStatus">
+Stopped
+</strong>
+</div>
+
+</div>
+
+
+<div class="card">
+
+<h3>📈 Session Statistics</h3>
+
+<div class="grid">
+
+<div class="stat">
+<small>Ticks</small>
+<strong id="ticks">0</strong>
+</div>
+
+<div class="stat">
+<small>Sample</small>
+<strong id="sample">0/100</strong>
+</div>
+
+<div class="stat">
+<small>Wins</small>
+<strong>0</strong>
+</div>
+
+<div class="stat">
+<small>Losses</small>
+<strong>0</strong>
+</div>
+
+</div>
+
+</div>
+
+<div class="footer">
+MellyFX • Market analysis only
+</div>
+
+</div>
+
 
 <script>
 
-let ws;
+let ws = null;
+
+let symbols = [];
+
 let digits = [];
+
 let running = false;
+
+let tickCount = 0;
+
+let currentSymbol = null;
+
+
+/* CONNECT TO DERIV */
 
 function connect(){
 
-  ws = new WebSocket(
-    "wss://api.derivws.com/trading/v1/options/ws/public"
-  );
+ws = new WebSocket(
+"wss://ws.binaryws.com/websockets/v3"
+);
 
-  ws.onopen = function(){
+ws.onopen = function(){
 
-    document.getElementById("connection").textContent =
-      "🟢 Connected";
+document.getElementById("connection").textContent =
+"🟢 Connected";
 
-    subscribe();
-  };
+document.getElementById("connection").className =
+"connected";
 
-  ws.onmessage = function(event){
+/* Ask Deriv for current active markets */
 
-    const data = JSON.parse(event.data);
+ws.send(JSON.stringify({
 
-    if(data.msg_type === "tick"){
+active_symbols:"brief",
 
-      const price = data.tick.quote;
+product_type:"basic",
 
-      document.getElementById("price").textContent = price;
+req_id:1
 
-      const priceString = String(price);
+}));
 
-      const lastDigit =
-        Number(priceString.slice(-1));
+};
 
-      document.getElementById("digit").textContent =
-        lastDigit;
 
-      digits.push(lastDigit);
+ws.onmessage = function(event){
 
-      if(digits.length > 100){
-        digits.shift();
-      }
+const data = JSON.parse(event.data);
 
-      updateStats();
-    }
-  };
 
-  ws.onerror = function(){
+/* ACTIVE SYMBOLS */
 
-    document.getElementById("connection").textContent =
-      "🔴 Connection Error";
-  };
+if(data.msg_type === "active_symbols"){
 
-  ws.onclose = function(){
+loadVolatilityMarkets(
+data.active_symbols
+);
 
-    document.getElementById("connection").textContent =
-      "🔴 Disconnected";
-  };
 }
 
-function subscribe(){
 
-  const symbol =
-    document.getElementById("market").value;
+/* LIVE TICK */
 
-  ws.send(JSON.stringify({
-    ticks:symbol,
-    subscribe:1
-  }));
+if(data.msg_type === "tick"){
+
+processTick(data.tick);
+
 }
 
-function updateStats(){
 
-  let counts =
-    [0,0,0,0,0,0,0,0,0,0];
+/* ERROR */
 
-  digits.forEach(function(digit){
-    counts[digit]++;
-  });
+if(data.error){
 
-  let output = "";
+console.log(data.error);
 
-  for(let i=0;i<10;i++){
-
-    let percentage =
-      digits.length === 0
-      ? 0
-      : (counts[i] / digits.length * 100).toFixed(1);
-
-    output += i + ": " +
-      percentage + "%<br>";
-  }
-
-  document.getElementById("stats").innerHTML =
-    output;
 }
+
+};
+
+
+ws.onerror = function(){
+
+document.getElementById("connection").textContent =
+"🔴 Connection error";
+
+document.getElementById("connection").className =
+"disconnected";
+
+};
+
+
+ws.onclose = function(){
+
+document.getElementById("connection").textContent =
+"🔴 Disconnected";
+
+document.getElementById("connection").className =
+"disconnected";
+
+};
+
+}
+
+
+/* LOAD ALL VOLATILITY MARKETS */
+
+function loadVolatilityMarkets(list){
+
+const select =
+document.getElementById("market");
+
+select.innerHTML = "";
+
+symbols = [];
+
+
+list.forEach(function(item){
+
+const name =
+item.underlying_symbol_name || "";
+
+const symbol =
+item.underlying_symbol || "";
+
+
+/* Only Volatility indices */
+
+if(
+name.toLowerCase().includes("volatility") ||
+symbol.toLowerCase().includes("hz")
+){
+
+symbols.push({
+
+name:name,
+
+symbol:symbol,
+
+pip:item.pip_size || 0.01
+
+});
+
+}
+
+});
+
+
+/* Sort alphabetically */
+
+symbols.sort(function(a,b){
+
+return a.name.localeCompare(b.name);
+
+});
+
+
+symbols.forEach(function(item){
+
+const option =
+document.createElement("option");
+
+option.value =
+item.symbol;
+
+option.textContent =
+item.name;
+
+select.appendChild(option);
+
+});
+
+
+if(symbols.length > 0){
+
+currentSymbol =
+symbols[0].symbol;
+
+subscribeToMarket(currentSymbol);
+
+}
+
+}
+
+
+/* SUBSCRIBE TO SELECTED MARKET */
+
+function subscribeToMarket(symbol){
+
+if(!ws || ws.readyState !== WebSocket.OPEN){
+
+return;
+
+}
+
+
+/* Reset statistics */
+
+digits = [];
+
+tickCount = 0;
+
+updateDisplay();
+
+
+/* Subscribe */
+
+ws.send(JSON.stringify({
+
+ticks:symbol,
+
+subscribe:1,
+
+req_id:2
+
+}));
+
+}
+
+
+/* MARKET CHANGED */
+
+document.getElementById("market")
+.addEventListener("change",function(){
+
+currentSymbol =
+this.value;
+
+subscribeToMarket(
+currentSymbol
+);
+
+});
+
+
+/* PROCESS TICK */
+
+function processTick(tick){
+
+const price =
+tick.quote;
+
+document.getElementById("price")
+.textContent = price;
+
+
+/*
+Convert the price to text.
+The final decimal digit is used
+for the digit analysis.
+*/
+
+let priceText =
+String(price);
+
+let lastDigit =
+Number(priceText.slice(-1));
+
+
+/* Make sure it is 0-9 */
+
+if(lastDigit >= 0 && lastDigit <= 9){
+
+document.getElementById("digit")
+.textContent =
+lastDigit;
+
+digits.push(lastDigit);
+
+}
+
+
+if(digits.length > 100){
+
+digits.shift();
+
+}
+
+
+tickCount++;
+
+document.getElementById("ticks")
+.textContent =
+tickCount;
+
+updateDisplay();
+
+}
+
+
+/* UPDATE STATISTICS */
+
+function updateDisplay(){
+
+let counts =
+[0,0,0,0,0,0,0,0,0,0];
+
+
+digits.forEach(function(d){
+
+counts[d]++;
+
+});
+
+
+for(let i=0;i<10;i++){
+
+let percentage =
+digits.length === 0
+? 0
+: (counts[i] / digits.length) * 100;
+
+document.getElementById("d"+i)
+.textContent =
+percentage.toFixed(1) + "%";
+
+}
+
+
+document.getElementById("sample")
+.textContent =
+digits.length + "/100";
+
+
+/* 0-2 */
+
+let low =
+counts[0] +
+counts[1] +
+counts[2];
+
+let lowPercent =
+digits.length === 0
+? 0
+: low / digits.length * 100;
+
+
+/* 7-9 */
+
+let high =
+counts[7] +
+counts[8] +
+counts[9];
+
+let highPercent =
+digits.length === 0
+? 0
+: high / digits.length * 100;
+
+
+document.getElementById("under2")
+.textContent =
+lowPercent.toFixed(1) + "%";
+
+
+document.getElementById("over7")
+.textContent =
+highPercent.toFixed(1) + "%";
+
+
+/* STRONGEST DIGIT */
+
+let strongest =
+0;
+
+for(let i=1;i<10;i++){
+
+if(counts[i] > counts[strongest]){
+
+strongest = i;
+
+}
+
+}
+
+
+if(digits.length > 0){
+
+document.getElementById("strongest")
+.textContent =
+strongest +
+" (" +
+(counts[strongest] /
+digits.length *
+100).toFixed(1) +
+"%)";
+
+}
+
+
+/* STRATEGY SIGNAL */
+
+calculateSignal(
+counts,
+lowPercent,
+highPercent
+);
+
+}
+
+
+/* STRATEGY SIGNAL */
+
+function calculateSignal(
+counts,
+lowPercent,
+highPercent
+){
+
+const signal =
+document.getElementById("signal");
+
+
+if(digits.length < 30){
+
+signal.textContent =
+"⏳ COLLECTING DATA";
+
+return;
+
+}
+
+
+/*
+Over 2 idea:
+
+Digits 0,1,2 should not dominate.
+Their combined percentage should
+be below 10.2%.
+*/
+
+let over2Ready =
+lowPercent < 10.2;
+
+
+/*
+Under 7 idea:
+
+Digits 7,8,9 should not dominate.
+We use the same threshold here
+as a starting analysis condition.
+*/
+
+let under7Ready =
+highPercent < 10.2;
+
+
+if(over2Ready && !under7Ready){
+
+signal.textContent =
+"🟢 OVER 2 SETUP";
+
+}
+
+else if(under7Ready && !over2Ready){
+
+signal.textContent =
+"🟢 UNDER 7 SETUP";
+
+}
+
+else if(over2Ready && under7Ready){
+
+signal.textContent =
+"🟡 BOTH CONDITIONS";
+
+}
+
+else{
+
+signal.textContent =
+"⏸️ WAIT";
+
+}
+
+}
+
+
+/* BOT START */
 
 function startBot(){
 
-  running = true;
+running = true;
 
-  document.getElementById("status").textContent =
-    "Running";
+document.getElementById("botStatus")
+.textContent =
+"Analyzing";
+
 }
+
+
+/* BOT STOP */
 
 function stopBot(){
 
-  running = false;
+running = false;
 
-  document.getElementById("status").textContent =
-    "Stopped";
+document.getElementById("botStatus")
+.textContent =
+"Stopped";
+
 }
 
-document.getElementById("market")
-.addEventListener("change", function(){
 
-  if(ws){
-    ws.close();
-  }
-
-  digits = [];
-
-  connect();
-});
+/* START CONNECTION */
 
 connect();
 
 </script>
 
 </body>
-</html>
+</html> 
