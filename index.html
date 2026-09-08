@@ -11,7 +11,7 @@
 body{
 margin:0;
 background:#07111f;
-color:white;
+color:#fff;
 font-family:Arial,sans-serif
 }
 
@@ -82,7 +82,7 @@ text-align:center
 }
 
 .price{
-font-size:27px;
+font-size:28px;
 text-align:center;
 margin:10px
 }
@@ -129,10 +129,6 @@ background:#116b46
 background:#765d12
 }
 
-.red{
-background:#702b2b
-}
-
 .small{
 font-size:12px;
 color:#91a4bb;
@@ -140,8 +136,17 @@ text-align:center
 }
 
 .entry{
-font-size:16px;
-line-height:1.7
+line-height:1.8
+}
+
+.good{
+color:#35e08a;
+font-weight:bold
+}
+
+.wait{
+color:#ffc857;
+font-weight:bold
 }
 </style>
 </head>
@@ -156,12 +161,13 @@ line-height:1.7
 Deriv Digit Strategy • 100 Tick Analysis
 </div>
 
+
 <div class="card">
 
 <label>Volatility Market</label>
 
 <select id="market">
-<option>Connecting...</option>
+<option>Loading markets...</option>
 </select>
 
 <label>Stake</label>
@@ -185,15 +191,13 @@ max="9"
 
 <button
 class="start"
-onclick="startBot()"
->
+onclick="startBot()">
 START BOT
 </button>
 
 <button
 class="stop"
-onclick="stopBot()"
->
+onclick="stopBot()">
 STOP BOT
 </button>
 
@@ -206,21 +210,13 @@ Connecting...
 
 <div class="card">
 
-<div class="latest">
-LIVE PRICE
-</div>
+<div class="latest">LIVE PRICE</div>
 
-<div id="price" class="price">
---
-</div>
+<div id="price" class="price">--</div>
 
-<div class="latest">
-LATEST DIGIT
-</div>
+<div class="latest">LATEST DIGIT</div>
 
-<div id="latestDigit" class="digit">
--
-</div>
+<div id="latestDigit" class="digit">-</div>
 
 </div>
 
@@ -269,15 +265,15 @@ Second Strongest:
 
 <p>
 <b>OVER 2:</b>
-<span id="overSequence">
-Waiting...
+<span id="overSequence" class="wait">
+Waiting for 0 ↔ 2
 </span>
 </p>
 
 <p>
 <b>UNDER 7:</b>
-<span id="underSequence">
-Waiting...
+<span id="underSequence" class="wait">
+Waiting for 7 ↔ 9
 </span>
 </p>
 
@@ -310,14 +306,14 @@ PUBLIC MARKET DATA • SIGNAL MODE ONLY
 
 <script>
 
-/* =================================
-   DERIV PUBLIC WEBSOCKET
-================================= */
+/* =========================================
+   DERIV PUBLIC MARKET DATA CONNECTION
+========================================= */
 
 const WS_URL =
-"wss://api.derivws.com/trading/v1/options/ws/public";
+"wss://ws.binaryws.com/websockets/v3";
 
-let ws;
+let ws=null;
 
 let markets=[];
 
@@ -327,10 +323,12 @@ let digitHistory=[];
 
 let botRunning=false;
 
+let reconnectTimer=null;
 
-/* =================================
+
+/* =========================================
    STATUS
-================================= */
+========================================= */
 
 function setStatus(text){
 
@@ -340,11 +338,19 @@ document.getElementById("status")
 }
 
 
-/* =================================
+/* =========================================
    CONNECT
-================================= */
+========================================= */
 
 function connect(){
+
+if(ws){
+
+try{
+ws.close();
+}catch(e){}
+
+}
 
 setStatus("🔄 Connecting to Deriv...");
 
@@ -362,17 +368,19 @@ requestMarkets();
 
 ws.onmessage=function(event){
 
+let data;
+
 try{
 
-const data=JSON.parse(event.data);
+data=JSON.parse(event.data);
 
-handleMessage(data);
+}catch(e){
 
-}catch(error){
-
-console.log(error);
+return;
 
 }
+
+handleMessage(data);
 
 };
 
@@ -390,31 +398,49 @@ setStatus(
 "🔴 Disconnected — reconnecting..."
 );
 
-setTimeout(connect,3000);
+clearTimeout(reconnectTimer);
+
+reconnectTimer=setTimeout(
+connect,
+3000
+);
 
 };
 
 }
 
 
-/* =================================
-   REQUEST MARKETS
-================================= */
+/* =========================================
+   REQUEST ACTIVE MARKETS
+========================================= */
 
 function requestMarkets(){
 
+if(
+!ws ||
+ws.readyState!==WebSocket.OPEN
+){
+
+return;
+
+}
+
 ws.send(JSON.stringify({
 
-active_symbols:"brief"
+active_symbols:"brief",
+
+product_type:"basic",
+
+req_id:1
 
 }));
 
 }
 
 
-/* =================================
-   HANDLE DATA
-================================= */
+/* =========================================
+   HANDLE SERVER DATA
+========================================= */
 
 function handleMessage(data){
 
@@ -429,7 +455,9 @@ return;
 }
 
 
-/* MARKETS */
+/* -----------------------------------------
+   ACTIVE SYMBOLS
+----------------------------------------- */
 
 if(data.msg_type==="active_symbols"){
 
@@ -439,23 +467,26 @@ data.active_symbols || [];
 
 markets=list.filter(function(item){
 
-const name=
-(
-item.underlying_symbol_name ||
-""
-).toLowerCase();
-
-
 const symbol=
 (
+item.symbol ||
 item.underlying_symbol ||
 ""
 ).toLowerCase();
 
 
-return
-name.includes("volatility") ||
-symbol.includes("hz");
+const name=
+(
+item.display_name ||
+item.underlying_symbol_name ||
+""
+).toLowerCase();
+
+
+return(
+symbol.includes("hz") ||
+name.includes("volatility")
+);
 
 });
 
@@ -465,20 +496,34 @@ populateMarkets();
 }
 
 
-/* TICKS */
+/* -----------------------------------------
+   HISTORICAL TICKS
+----------------------------------------- */
+
+if(
+data.msg_type==="history" &&
+data.history
+){
+
+processHistory(data);
+
+}
+
+
+/* -----------------------------------------
+   LIVE TICK
+----------------------------------------- */
 
 if(
 data.msg_type==="tick" &&
 data.tick
 ){
 
-const tick=data.tick;
-
 if(
-tick.symbol===currentSymbol
+data.tick.symbol===currentSymbol
 ){
 
-processTick(tick);
+processTick(data.tick);
 
 }
 
@@ -487,9 +532,9 @@ processTick(tick);
 }
 
 
-/* =================================
-   POPULATE MARKETS
-================================= */
+/* =========================================
+   POPULATE MARKET DROPDOWN
+========================================= */
 
 function populateMarkets(){
 
@@ -502,7 +547,11 @@ select.innerHTML="";
 if(markets.length===0){
 
 select.innerHTML=
-"<option>No markets found</option>";
+"<option>No Volatility markets found</option>";
+
+setStatus(
+"⚠️ No Volatility markets found"
+);
 
 return;
 
@@ -511,18 +560,23 @@ return;
 
 markets.forEach(function(item){
 
+const symbol=
+item.symbol ||
+item.underlying_symbol;
+
+
+const name=
+item.display_name ||
+item.underlying_symbol_name ||
+symbol;
+
+
 const option=
 document.createElement("option");
 
+option.value=symbol;
 
-option.value=
-item.underlying_symbol;
-
-
-option.textContent=
-item.underlying_symbol_name ||
-item.underlying_symbol;
-
+option.textContent=name;
 
 select.appendChild(option);
 
@@ -530,19 +584,20 @@ select.appendChild(option);
 
 
 currentSymbol=
+markets[0].symbol ||
 markets[0].underlying_symbol;
 
 
-subscribe(currentSymbol);
+subscribeMarket(currentSymbol);
 
 }
 
 
-/* =================================
-   SUBSCRIBE
-================================= */
+/* =========================================
+   SUBSCRIBE TO MARKET
+========================================= */
 
-function subscribe(symbol){
+function subscribeMarket(symbol){
 
 if(
 !ws ||
@@ -559,10 +614,32 @@ currentSymbol=symbol;
 digitHistory=[];
 
 
+/* Get last 100 ticks */
+
+ws.send(JSON.stringify({
+
+ticks_history:symbol,
+
+count:100,
+
+end:"latest",
+
+style:"ticks",
+
+req_id:10
+
+}));
+
+
+/* Live subscription */
+
 ws.send(JSON.stringify({
 
 ticks:symbol,
-subscribe:1
+
+subscribe:1,
+
+req_id:11
 
 }));
 
@@ -574,9 +651,9 @@ setStatus(
 }
 
 
-/* =================================
-   MARKET CHANGE
-================================= */
+/* =========================================
+   MARKET SWITCH
+========================================= */
 
 document
 .getElementById("market")
@@ -584,74 +661,101 @@ document
 "change",
 function(){
 
-subscribe(this.value);
+subscribeMarket(this.value);
 
 }
 );
 
 
-/* =================================
-   PROCESS TICK
-================================= */
+/* =========================================
+   PROCESS HISTORY
+========================================= */
+
+function processHistory(data){
+
+const prices=
+data.history.prices || [];
+
+const times=
+data.history.times || [];
+
+digitHistory=[];
+
+
+for(
+let i=0;
+i<prices.length;
+i++
+){
+
+const digit=
+extractDigit(
+prices[i],
+data.history.pip_size
+);
+
+if(
+digit>=0 &&
+digit<=9
+){
+
+digitHistory.push(digit);
+
+}
+
+}
+
+
+/* Keep exactly latest 100 */
+
+if(digitHistory.length>100){
+
+digitHistory=
+digitHistory.slice(-100);
+
+}
+
+
+/* Show latest historical price */
+
+if(prices.length){
+
+document.getElementById("price")
+.innerText=
+prices[prices.length-1];
+
+document.getElementById(
+"latestDigit"
+).innerText=
+digitHistory[digitHistory.length-1];
+
+}
+
+
+updateAnalysis();
+
+}
+
+
+/* =========================================
+   PROCESS LIVE TICK
+========================================= */
 
 function processTick(tick){
 
-const price=tick.quote;
+const digit=
+extractDigit(
+tick.quote,
+tick.pip_size
+);
 
 
 document.getElementById("price")
-.innerText=price;
-
-
-let digit;
-
-
-/*
-Use pip size when available
-*/
-
-if(
-typeof tick.pip_size==="number" &&
-tick.pip_size>0
-){
-
-const decimals=
-Math.max(
-0,
-Math.round(
--Math.log10(tick.pip_size)
-)
-);
-
-
-const formatted=
-Number(price).toFixed(decimals);
-
-
-digit=
-parseInt(
-formatted.charAt(
-formatted.length-1
-)
-);
-
-
-}else{
-
-const text=
-String(price);
-
-digit=
-parseInt(
-text.replace(/\D/g,"")
-.slice(-1)
-);
-
-}
+.innerText=
+tick.quote;
 
 
 if(
-isNaN(digit) ||
 digit<0 ||
 digit>9
 ){
@@ -669,9 +773,7 @@ document.getElementById(
 digitHistory.push(digit);
 
 
-if(
-digitHistory.length>100
-){
+if(digitHistory.length>100){
 
 digitHistory.shift();
 
@@ -683,9 +785,76 @@ updateAnalysis();
 }
 
 
-/* =================================
+/* =========================================
+   ACCURATE LAST DIGIT
+========================================= */
+
+function extractDigit(
+price,
+pipSize
+){
+
+let decimals=0;
+
+
+if(
+typeof pipSize==="number" &&
+pipSize>0
+){
+
+decimals=
+Math.max(
+0,
+Math.round(
+-Math.log10(pipSize)
+)
+);
+
+}
+
+
+let formatted;
+
+
+if(decimals>0){
+
+formatted=
+Number(price).toFixed(decimals);
+
+}else{
+
+formatted=
+String(price);
+
+}
+
+
+const numbers=
+formatted.replace(
+/[^0-9]/g,
+""
+);
+
+
+if(!numbers.length){
+
+return -1;
+
+}
+
+
+return parseInt(
+numbers.charAt(
+numbers.length-1
+)
+);
+
+}
+
+
+/* =========================================
    ANALYSIS
-================================= */
+========================================= */
 
 function updateAnalysis(){
 
@@ -695,7 +864,11 @@ Array(10).fill(0);
 
 digitHistory.forEach(function(d){
 
+if(d>=0 && d<=9){
+
 counts[d]++;
+
+}
 
 });
 
@@ -703,6 +876,8 @@ counts[d]++;
 const total=
 digitHistory.length;
 
+
+/* DIGIT GRID */
 
 const grid=
 document.getElementById(
@@ -712,12 +887,16 @@ document.getElementById(
 grid.innerHTML="";
 
 
-for(let i=0;i<10;i++){
+for(
+let i=0;
+i<10;
+i++
+){
 
-const percent=
+const percentage=
 total
 ?
-counts[i]/total*100
+(counts[i]/total)*100
 :
 0;
 
@@ -725,16 +904,13 @@ counts[i]/total*100
 const box=
 document.createElement("div");
 
-
 box.className="box";
-
 
 box.innerHTML=
 "<b>"+i+
 "</b><br>"+
-percent.toFixed(1)+
+percentage.toFixed(1)+
 "%";
-
 
 grid.appendChild(box);
 
@@ -778,21 +954,29 @@ document.getElementById(
 high.toFixed(1)+"%";
 
 
-/* STRONGEST */
+/* =========================================
+   RANK DIGITS
+========================================= */
 
 const ranked=
 counts
-.map(function(value,index){
+.map(function(count,index){
 
-return {
+return{
 digit:index,
-count:value
+count:count
 };
 
 })
 .sort(function(a,b){
 
+if(b.count!==a.count){
+
 return b.count-a.count;
+
+}
+
+return a.digit-b.digit;
 
 });
 
@@ -817,9 +1001,9 @@ document.getElementById(
 second;
 
 
-/* =================================
-   ENTRY SEQUENCES
-================================= */
+/* =========================================
+   RECENT ENTRY SEQUENCE
+========================================= */
 
 let overEntry=false;
 
@@ -839,11 +1023,18 @@ digitHistory.length-1
 ];
 
 
-/* OVER 2 */
+/* OVER 2: 0 -> 2 OR 2 -> 0 */
 
 if(
-(previous===0 && latest===2) ||
-(previous===2 && latest===0)
+(
+previous===0 &&
+latest===2
+)
+||
+(
+previous===2 &&
+latest===0
+)
 ){
 
 overEntry=true;
@@ -851,11 +1042,18 @@ overEntry=true;
 }
 
 
-/* UNDER 7 */
+/* UNDER 7: 7 -> 9 OR 9 -> 7 */
 
 if(
-(previous===7 && latest===9) ||
-(previous===9 && latest===7)
+(
+previous===7 &&
+latest===9
+)
+||
+(
+previous===9 &&
+latest===7
+)
 ){
 
 underEntry=true;
@@ -865,52 +1063,91 @@ underEntry=true;
 }
 
 
+const overText=
 document.getElementById(
 "overSequence"
-).innerText=
-overEntry
-?
-"✅ 0 ↔ 2 CONFIRMED"
-:
-"❌ Waiting for 0 ↔ 2";
+);
 
 
+const underText=
 document.getElementById(
 "underSequence"
-).innerText=
-underEntry
-?
-"✅ 7 ↔ 9 CONFIRMED"
-:
+);
+
+
+if(overEntry){
+
+overText.innerText=
+"✅ 0 ↔ 2 CONFIRMED";
+
+overText.className="good";
+
+}else{
+
+overText.innerText=
+"❌ Waiting for 0 ↔ 2";
+
+overText.className="wait";
+
+}
+
+
+if(underEntry){
+
+underText.innerText=
+"✅ 7 ↔ 9 CONFIRMED";
+
+underText.className="good";
+
+}else{
+
+underText.innerText=
 "❌ Waiting for 7 ↔ 9";
 
+underText.className="wait";
 
-/* =================================
-   STRONG DIGIT RULE
-================================= */
+}
 
-const strongestOdd=
+
+/* =========================================
+   STRONGEST DIGIT RULES
+========================================= */
+
+/*
+OVER 2:
+strongest + second strongest
+must both be odd 5,7,9
+*/
+
+const overStrong=
 [5,7,9].includes(strongest) &&
 [5,7,9].includes(second);
 
 
-const strongestEven=
+/*
+UNDER 7:
+strongest + second strongest
+must both be even 0,2,4
+*/
+
+const underStrong=
 [0,2,4].includes(strongest) &&
 [0,2,4].includes(second);
 
 
-/* =================================
-   FINAL SIGNAL
-================================= */
+/* =========================================
+   FINAL STRATEGY
+========================================= */
 
 const signal=
 document.getElementById(
 "signal"
 );
 
-
 signal.className="signal";
 
+
+/* Need 100 ticks */
 
 if(total<100){
 
@@ -922,12 +1159,14 @@ return;
 }
 
 
-/* OVER 2 */
+/* =========================================
+   OVER 2
+========================================= */
 
 if(
 low>=30 &&
 overEntry &&
-strongestOdd
+overStrong
 ){
 
 signal.className=
@@ -936,18 +1175,19 @@ signal.className=
 signal.innerText=
 "🟢 OVER 2 ENTRY";
 
-
 return;
 
 }
 
 
-/* UNDER 7 */
+/* =========================================
+   UNDER 7
+========================================= */
 
 if(
 high>=30 &&
 underEntry &&
-strongestEven
+underStrong
 ){
 
 signal.className=
@@ -956,13 +1196,14 @@ signal.className=
 signal.innerText=
 "🟢 UNDER 7 ENTRY";
 
-
 return;
 
 }
 
 
-/* WAIT */
+/* =========================================
+   WAIT
+========================================= */
 
 signal.className=
 "signal yellow";
@@ -973,9 +1214,9 @@ signal.innerText=
 }
 
 
-/* =================================
-   BOT BUTTONS
-================================= */
+/* =========================================
+   BOT CONTROLS
+========================================= */
 
 function startBot(){
 
@@ -999,9 +1240,9 @@ setStatus(
 }
 
 
-/* =================================
-   START
-================================= */
+/* =========================================
+   START CONNECTION
+========================================= */
 
 connect();
 
