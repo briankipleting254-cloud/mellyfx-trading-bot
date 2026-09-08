@@ -21,10 +21,7 @@ margin:auto;
 padding:16px
 }
 
-h1{
-text-align:center;
-margin:8px 0
-}
+h1{text-align:center;margin:8px 0}
 
 .sub{
 text-align:center;
@@ -78,7 +75,8 @@ margin-top:10px;
 padding:12px;
 background:#18283b;
 border-radius:9px;
-text-align:center
+text-align:center;
+word-break:break-word
 }
 
 .price{
@@ -121,13 +119,9 @@ border-radius:10px;
 background:#18283b
 }
 
-.green{
-background:#116b46
-}
-
-.yellow{
-background:#765d12
-}
+.green{background:#116b46}
+.yellow{background:#765d12}
+.red{background:#713535}
 
 .small{
 font-size:12px;
@@ -135,9 +129,7 @@ color:#91a4bb;
 text-align:center
 }
 
-.entry{
-line-height:1.8
-}
+.entry{line-height:1.8}
 
 .good{
 color:#35e08a;
@@ -147,6 +139,17 @@ font-weight:bold
 .wait{
 color:#ffc857;
 font-weight:bold
+}
+
+.debug{
+font-size:11px;
+color:#8fa4bb;
+word-break:break-word;
+max-height:120px;
+overflow:auto;
+background:#091522;
+padding:8px;
+border-radius:7px
 }
 </style>
 </head>
@@ -161,52 +164,35 @@ font-weight:bold
 Deriv Digit Strategy • 100 Tick Analysis
 </div>
 
-
 <div class="card">
 
 <label>Volatility Market</label>
 
 <select id="market">
-<option>Loading markets...</option>
+<option>Connecting to Deriv...</option>
 </select>
 
 <label>Stake</label>
 
-<input
-id="stake"
-type="number"
-value="1"
-min="0.35"
->
+<input id="stake" type="number" value="1" min="0.35">
 
 <label>Prediction Digit</label>
 
-<input
-id="prediction"
-type="number"
-value="2"
-min="0"
-max="9"
->
+<input id="prediction" type="number" value="2" min="0" max="9">
 
-<button
-class="start"
-onclick="startBot()">
+<button class="start" onclick="startBot()">
 START BOT
 </button>
 
-<button
-class="stop"
-onclick="stopBot()">
+<button class="stop" onclick="stopBot()">
 STOP BOT
 </button>
 
 <div id="status" class="status">
-Connecting...
+🔄 Starting connection...
 </div>
 
 </div>
-
 
 <div class="card">
 
@@ -220,7 +206,6 @@ Connecting...
 
 </div>
 
-
 <div class="card">
 
 <h3>Digit Frequency — Last 100</h3>
@@ -228,7 +213,6 @@ Connecting...
 <div id="digitGrid" class="grid"></div>
 
 </div>
-
 
 <div class="card">
 
@@ -256,7 +240,6 @@ Second Strongest:
 
 </div>
 
-
 <div class="card">
 
 <h3>Entry Confirmation</h3>
@@ -281,17 +264,25 @@ Waiting for 7 ↔ 9
 
 </div>
 
-
 <div class="card">
 
 <h3>🎯 Strategy Signal</h3>
 
 <div id="signal" class="signal">
-⏳ COLLECTING DATA
+⏳ CONNECTING
 </div>
 
 </div>
 
+<div class="card">
+
+<h3>🔧 Connection Diagnostic</h3>
+
+<div id="debug" class="debug">
+Waiting for Deriv response...
+</div>
+
+</div>
 
 <div class="card">
 
@@ -306,128 +297,271 @@ PUBLIC MARKET DATA • SIGNAL MODE ONLY
 
 <script>
 
-/* =========================================
-   DERIV PUBLIC MARKET DATA CONNECTION
-========================================= */
+/* =====================================================
+   MELLYFX DERIV DIGIT ANALYSIS
+   SIGNAL ONLY - NO REAL TRADING
+===================================================== */
+
+
+/* -----------------------------------------------------
+   DERIV PUBLIC MARKET DATA ENDPOINT
+----------------------------------------------------- */
 
 const WS_URL =
 "wss://ws.binaryws.com/websockets/v3";
 
-let ws=null;
 
-let markets=[];
+/* -----------------------------------------------------
+   GLOBAL VARIABLES
+----------------------------------------------------- */
 
-let currentSymbol="";
+let ws = null;
 
-let digitHistory=[];
+let markets = [];
 
-let botRunning=false;
+let currentSymbol = "";
 
-let reconnectTimer=null;
+let digitHistory = [];
+
+let botRunning = false;
+
+let reconnectTimer = null;
+
+let reconnectAttempts = 0;
+
+let manuallyStopped = false;
 
 
-/* =========================================
-   STATUS
-========================================= */
+/* -----------------------------------------------------
+   UI HELPERS
+----------------------------------------------------- */
 
 function setStatus(text){
 
-document.getElementById("status")
-.innerText=text;
+const el =
+document.getElementById("status");
+
+el.innerText = text;
 
 }
 
 
-/* =========================================
+function setDebug(text){
+
+const el =
+document.getElementById("debug");
+
+el.innerText = text;
+
+}
+
+
+/* -----------------------------------------------------
    CONNECT
-========================================= */
+----------------------------------------------------- */
 
 function connect(){
 
-if(ws){
+manuallyStopped = false;
+
+clearTimeout(reconnectTimer);
+
+setStatus(
+"🔄 Connecting to Deriv..."
+);
+
+setDebug(
+"Opening WebSocket connection..."
+);
+
 
 try{
-ws.close();
-}catch(e){}
+
+ws = new WebSocket(WS_URL);
+
+}catch(error){
+
+setStatus(
+"❌ WebSocket creation failed"
+);
+
+setDebug(
+String(error)
+);
+
+scheduleReconnect();
+
+return;
 
 }
 
-setStatus("🔄 Connecting to Deriv...");
 
-ws=new WebSocket(WS_URL);
+/* -----------------------------------------------------
+   OPEN
+----------------------------------------------------- */
 
+ws.onopen = function(){
 
-ws.onopen=function(){
+reconnectAttempts = 0;
 
-setStatus("🟢 Connected");
+setStatus(
+"🟢 Connected • Loading markets..."
+);
+
+setDebug(
+"Connection successful. Requesting active markets..."
+);
 
 requestMarkets();
 
 };
 
 
-ws.onmessage=function(event){
+/* -----------------------------------------------------
+   MESSAGE
+----------------------------------------------------- */
+
+ws.onmessage = function(event){
 
 let data;
 
 try{
 
-data=JSON.parse(event.data);
+data =
+JSON.parse(event.data);
 
-}catch(e){
+}catch(error){
+
+setDebug(
+"Invalid server message received."
+);
 
 return;
 
 }
+
+
+/* Show useful diagnostic */
+
+if(data.error){
+
+setDebug(
+"Deriv ERROR: " +
+(data.error.code || "") +
+" — " +
+(data.error.message || "Unknown error")
+);
+
+}
+
+
+/* Process */
 
 handleMessage(data);
 
 };
 
 
-ws.onerror=function(){
+/* -----------------------------------------------------
+   ERROR
+----------------------------------------------------- */
 
-setStatus("🔴 Connection error");
-
-};
-
-
-ws.onclose=function(){
+ws.onerror = function(){
 
 setStatus(
-"🔴 Disconnected — reconnecting..."
+"🔴 WebSocket connection error"
 );
 
-clearTimeout(reconnectTimer);
-
-reconnectTimer=setTimeout(
-connect,
-3000
+setDebug(
+"WebSocket error. Waiting for connection to close..."
 );
 
 };
 
-}
 
+/* -----------------------------------------------------
+   CLOSE
+----------------------------------------------------- */
 
-/* =========================================
-   REQUEST ACTIVE MARKETS
-========================================= */
+ws.onclose = function(){
 
-   function requestMarkets(){
-
-  ws.send(JSON.stringify({
-    active_symbols:"brief",
-    req_id:1
-  }));
-
-}
+if(manuallyStopped){
 
 return;
 
 }
 
-ws.send(JSON.stringify({
+setStatus(
+"🔴 Disconnected — reconnecting..."
+);
+
+setDebug(
+"Connection closed. Attempting reconnect..."
+);
+
+scheduleReconnect();
+
+};
+
+}
+
+
+/* -----------------------------------------------------
+   RECONNECT
+----------------------------------------------------- */
+
+function scheduleReconnect(){
+
+if(manuallyStopped){
+
+return;
+
+}
+
+clearTimeout(reconnectTimer);
+
+reconnectAttempts++;
+
+const delay =
+Math.min(
+3000 + reconnectAttempts * 1000,
+10000
+);
+
+reconnectTimer =
+setTimeout(
+connect,
+delay
+);
+
+}
+
+
+/* -----------------------------------------------------
+   REQUEST MARKETS
+----------------------------------------------------- */
+
+function requestMarkets(){
+
+if(
+!ws ||
+ws.readyState !== WebSocket.OPEN
+){
+
+setDebug(
+"Cannot request markets: WebSocket not open."
+);
+
+return;
+
+}
+
+
+/*
+   Use the documented public market-data request.
+*/
+
+const request = {
 
 active_symbols:"brief",
 
@@ -435,21 +569,34 @@ product_type:"basic",
 
 req_id:1
 
-}));
+};
+
+
+setDebug(
+"Requesting active_symbols..."
+);
+
+ws.send(
+JSON.stringify(request)
+);
 
 }
 
 
-/* =========================================
-   HANDLE SERVER DATA
-========================================= */
+/* -----------------------------------------------------
+   HANDLE SERVER MESSAGE
+----------------------------------------------------- */
 
 function handleMessage(data){
+
+
+/* SERVER ERROR */
 
 if(data.error){
 
 setStatus(
-"⚠️ "+data.error.message
+"⚠️ Deriv: " +
+data.error.message
 );
 
 return;
@@ -457,102 +604,178 @@ return;
 }
 
 
-/* -----------------------------------------
+/* -----------------------------------------------------
    ACTIVE SYMBOLS
------------------------------------------ */
+----------------------------------------------------- */
 
-if(data.msg_type==="active_symbols"){
+if(
+data.msg_type === "active_symbols"
+){
 
-const list=
-data.active_symbols || [];
+const list =
+Array.isArray(data.active_symbols)
+?
+data.active_symbols
+:
+[];
 
 
-markets=list.filter(function(item){
+/*
+   Accept both old and new Deriv
+   response field names.
+*/
 
-const symbol=
-(
+markets =
+list.filter(function(item){
+
+const symbol =
+String(
 item.symbol ||
 item.underlying_symbol ||
 ""
-).toLowerCase();
+);
 
-
-const name=
-(
+const name =
+String(
 item.display_name ||
 item.underlying_symbol_name ||
 ""
-).toLowerCase();
+);
 
+const market =
+String(
+item.market ||
+item.market_name ||
+""
+);
+
+
+/*
+   Volatility symbols normally contain
+   V / 1HZ and names contain Volatility.
+*/
 
 return(
-symbol.includes("hz") ||
-name.includes("volatility")
+/volatility/i.test(name) ||
+/volatility/i.test(market) ||
+/^[0-9]+HZ[0-9]+V$/i.test(symbol) ||
+/^1HZ[0-9]+V$/i.test(symbol) ||
+/^[0-9]+V$/i.test(symbol)
 );
 
 });
 
 
+/* Sort alphabetically */
+
+markets.sort(function(a,b){
+
+const aName =
+String(
+a.display_name ||
+a.underlying_symbol_name ||
+a.symbol ||
+a.underlying_symbol ||
+""
+);
+
+const bName =
+String(
+b.display_name ||
+b.underlying_symbol_name ||
+b.symbol ||
+b.underlying_symbol ||
+""
+);
+
+return aName.localeCompare(bName);
+
+});
+
+
+setDebug(
+"Deriv returned " +
+list.length +
+" markets. Volatility markets found: " +
+markets.length
+);
+
+
+/* Populate */
+
 populateMarkets();
+
+return;
 
 }
 
 
-/* -----------------------------------------
-   HISTORICAL TICKS
------------------------------------------ */
+/* -----------------------------------------------------
+   HISTORICAL DATA
+----------------------------------------------------- */
 
 if(
-data.msg_type==="history" &&
-data.history
+data.msg_type === "history"
 ){
+
+if(data.history){
 
 processHistory(data);
 
 }
 
+return;
 
-/* -----------------------------------------
+}
+
+
+/* -----------------------------------------------------
    LIVE TICK
------------------------------------------ */
+----------------------------------------------------- */
 
 if(
-data.msg_type==="tick" &&
-data.tick
+data.msg_type === "tick"
 ){
 
 if(
-data.tick.symbol===currentSymbol
+data.tick &&
+data.tick.symbol === currentSymbol
 ){
 
 processTick(data.tick);
 
 }
 
-}
+return;
 
 }
 
+}
 
-/* =========================================
-   POPULATE MARKET DROPDOWN
-========================================= */
+
+/* -----------------------------------------------------
+   POPULATE MARKETS
+----------------------------------------------------- */
 
 function populateMarkets(){
 
-const select=
+const select =
 document.getElementById("market");
 
-select.innerHTML="";
+select.innerHTML = "";
 
 
-if(markets.length===0){
+if(markets.length === 0){
 
-select.innerHTML=
+select.innerHTML =
 "<option>No Volatility markets found</option>";
 
 setStatus(
 "⚠️ No Volatility markets found"
+);
+
+setDebug(
+"Deriv connected but no matching Volatility symbols were detected."
 );
 
 return;
@@ -560,65 +783,125 @@ return;
 }
 
 
+/* Add every market */
+
 markets.forEach(function(item){
 
-const symbol=
+const symbol =
 item.symbol ||
 item.underlying_symbol;
 
-
-const name=
+const name =
 item.display_name ||
 item.underlying_symbol_name ||
 symbol;
 
+if(!symbol){
 
-const option=
+return;
+
+}
+
+const option =
 document.createElement("option");
 
-option.value=symbol;
+option.value =
+symbol;
 
-option.textContent=name;
+option.textContent =
+name +
+" (" +
+symbol +
+")";
 
 select.appendChild(option);
 
 });
 
 
-currentSymbol=
-markets[0].symbol ||
-markets[0].underlying_symbol;
+/* First market */
+
+const first =
+markets.find(function(item){
+
+return(
+item.symbol ||
+item.underlying_symbol
+);
+
+});
 
 
-subscribeMarket(currentSymbol);
-
-}
-
-
-/* =========================================
-   SUBSCRIBE TO MARKET
-========================================= */
-
-function subscribeMarket(symbol){
-
-if(
-!ws ||
-ws.readyState!==WebSocket.OPEN
-){
+if(!first){
 
 return;
 
 }
 
 
-currentSymbol=symbol;
+currentSymbol =
+first.symbol ||
+first.underlying_symbol;
 
-digitHistory=[];
+
+select.value =
+currentSymbol;
 
 
-/* Get last 100 ticks */
+setStatus(
+"🟢 Connected • " +
+currentSymbol
+);
 
-ws.send(JSON.stringify({
+subscribeMarket(
+currentSymbol
+);
+
+}
+
+
+/* -----------------------------------------------------
+   SUBSCRIBE MARKET
+----------------------------------------------------- */
+
+function subscribeMarket(symbol){
+
+if(
+!ws ||
+ws.readyState !== WebSocket.OPEN
+){
+
+setStatus(
+"🔴 Not connected"
+);
+
+return;
+
+}
+
+
+currentSymbol =
+symbol;
+
+digitHistory = [];
+
+
+/* Reset display */
+
+document.getElementById(
+"price"
+).innerText = "--";
+
+document.getElementById(
+"latestDigit"
+).innerText = "-";
+
+
+/* -----------------------------------------------
+   HISTORICAL 100 TICKS
+------------------------------------------------ */
+
+const historyRequest = {
 
 ticks_history:symbol,
 
@@ -630,12 +913,19 @@ style:"ticks",
 
 req_id:10
 
-}));
+};
 
 
-/* Live subscription */
+ws.send(
+JSON.stringify(historyRequest)
+);
 
-ws.send(JSON.stringify({
+
+/* -----------------------------------------------
+   LIVE TICKS
+------------------------------------------------ */
+
+const tickRequest = {
 
 ticks:symbol,
 
@@ -643,19 +933,31 @@ subscribe:1,
 
 req_id:11
 
-}));
+};
+
+
+ws.send(
+JSON.stringify(tickRequest)
+);
 
 
 setStatus(
-"🟢 Connected • "+symbol
+"🟢 LIVE • " +
+symbol
+);
+
+setDebug(
+"Loading 100 historical ticks for " +
+symbol +
+"..."
 );
 
 }
 
 
-/* =========================================
-   MARKET SWITCH
-========================================= */
+/* -----------------------------------------------------
+   MARKET DROPDOWN
+----------------------------------------------------- */
 
 document
 .getElementById("market")
@@ -663,25 +965,36 @@ document
 "change",
 function(){
 
-subscribeMarket(this.value);
+if(this.value){
+
+subscribeMarket(
+this.value
+);
+
+}
 
 }
 );
 
 
-/* =========================================
-   PROCESS HISTORY
-========================================= */
+/* -----------------------------------------------------
+   HISTORY
+----------------------------------------------------- */
 
 function processHistory(data){
 
-const prices=
+const prices =
 data.history.prices || [];
 
-const times=
-data.history.times || [];
+const pipSize =
+data.history.pip_size;
 
-digitHistory=[];
+
+/*
+   Clear previous data
+*/
+
+digitHistory = [];
 
 
 for(
@@ -690,48 +1003,67 @@ i<prices.length;
 i++
 ){
 
-const digit=
+const digit =
 extractDigit(
 prices[i],
-data.history.pip_size
+pipSize
 );
 
 if(
-digit>=0 &&
-digit<=9
+digit >= 0 &&
+digit <= 9
 ){
 
-digitHistory.push(digit);
+digitHistory.push(
+digit
+);
 
 }
 
 }
 
 
-/* Keep exactly latest 100 */
+/* Keep last 100 */
 
-if(digitHistory.length>100){
+if(
+digitHistory.length > 100
+){
 
-digitHistory=
+digitHistory =
 digitHistory.slice(-100);
 
 }
 
 
-/* Show latest historical price */
+/* Latest price */
 
 if(prices.length){
 
-document.getElementById("price")
-.innerText=
-prices[prices.length-1];
+document.getElementById(
+"price"
+).innerText =
+prices[prices.length - 1];
+
+}
+
+
+if(digitHistory.length){
 
 document.getElementById(
 "latestDigit"
-).innerText=
-digitHistory[digitHistory.length-1];
+).innerText =
+digitHistory[
+digitHistory.length - 1
+];
 
 }
+
+
+setDebug(
+"Loaded " +
+digitHistory.length +
+" historical digits. Live stream active."
+);
 
 
 updateAnalysis();
@@ -739,27 +1071,37 @@ updateAnalysis();
 }
 
 
-/* =========================================
-   PROCESS LIVE TICK
-========================================= */
+/* -----------------------------------------------------
+   LIVE TICK
+----------------------------------------------------- */
 
 function processTick(tick){
 
-const digit=
+const quote =
+tick.quote;
+
+document.getElementById(
+"price"
+).innerText =
+quote;
+
+
+/*
+   Current API may not always provide
+   pip_size, so use quote formatting
+   when necessary.
+*/
+
+const digit =
 extractDigit(
-tick.quote,
+quote,
 tick.pip_size
 );
 
 
-document.getElementById("price")
-.innerText=
-tick.quote;
-
-
 if(
-digit<0 ||
-digit>9
+digit < 0 ||
+digit > 9
 ){
 
 return;
@@ -769,17 +1111,32 @@ return;
 
 document.getElementById(
 "latestDigit"
-).innerText=digit;
+).innerText =
+digit;
 
 
-digitHistory.push(digit);
+digitHistory.push(
+digit
+);
 
 
-if(digitHistory.length>100){
+/* Keep exactly 100 */
+
+if(
+digitHistory.length > 100
+){
 
 digitHistory.shift();
 
 }
+
+
+setDebug(
+"Live tick received • " +
+quote +
+" • digit " +
+digit
+);
 
 
 updateAnalysis();
@@ -787,24 +1144,38 @@ updateAnalysis();
 }
 
 
-/* =========================================
-   ACCURATE LAST DIGIT
-========================================= */
+/* -----------------------------------------------------
+   EXTRACT LAST DIGIT
+----------------------------------------------------- */
 
 function extractDigit(
 price,
 pipSize
 ){
 
-let decimals=0;
-
-
 if(
-typeof pipSize==="number" &&
-pipSize>0
+price === undefined ||
+price === null
 ){
 
-decimals=
+return -1;
+
+}
+
+
+let decimals = 0;
+
+
+/*
+   If pip_size is available
+*/
+
+if(
+typeof pipSize === "number" &&
+pipSize > 0
+){
+
+decimals =
 Math.max(
 0,
 Math.round(
@@ -815,30 +1186,54 @@ Math.round(
 }
 
 
+/*
+   If pip_size is unavailable,
+   determine decimals from string.
+*/
+
+if(decimals === 0){
+
+const text =
+String(price);
+
+const decimalPart =
+text.split(".")[1];
+
+if(decimalPart){
+
+decimals =
+decimalPart.length;
+
+}
+
+}
+
+
 let formatted;
 
 
-if(decimals>0){
+if(decimals > 0){
 
-formatted=
-Number(price).toFixed(decimals);
+formatted =
+Number(price)
+.toFixed(decimals);
 
 }else{
 
-formatted=
+formatted =
 String(price);
 
 }
 
 
-const numbers=
+const clean =
 formatted.replace(
 /[^0-9]/g,
 ""
 );
 
 
-if(!numbers.length){
+if(!clean){
 
 return -1;
 
@@ -846,27 +1241,31 @@ return -1;
 
 
 return parseInt(
-numbers.charAt(
-numbers.length-1
-)
+clean.charAt(
+clean.length - 1
+),
+10
 );
 
 }
 
 
-/* =========================================
+/* -----------------------------------------------------
    ANALYSIS
-========================================= */
+----------------------------------------------------- */
 
 function updateAnalysis(){
 
-const counts=
+const counts =
 Array(10).fill(0);
 
 
 digitHistory.forEach(function(d){
 
-if(d>=0 && d<=9){
+if(
+d >= 0 &&
+d <= 9
+){
 
 counts[d]++;
 
@@ -875,18 +1274,20 @@ counts[d]++;
 });
 
 
-const total=
+const total =
 digitHistory.length;
 
 
-/* DIGIT GRID */
+/* -----------------------------------------------
+   DIGIT GRID
+------------------------------------------------ */
 
-const grid=
+const grid =
 document.getElementById(
 "digitGrid"
 );
 
-grid.innerHTML="";
+grid.innerHTML = "";
 
 
 for(
@@ -895,183 +1296,213 @@ i<10;
 i++
 ){
 
-const percentage=
-total
+const percentage =
+total > 0
 ?
-(counts[i]/total)*100
+(counts[i] / total) * 100
 :
 0;
 
 
-const box=
+const box =
 document.createElement("div");
 
-box.className="box";
+box.className =
+"box";
 
-box.innerHTML=
-"<b>"+i+
-"</b><br>"+
-percentage.toFixed(1)+
+box.innerHTML =
+"<b>" +
+i +
+"</b><br>" +
+percentage.toFixed(1) +
 "%";
 
-grid.appendChild(box);
+grid.appendChild(
+box
+);
 
 }
 
 
-if(total===0){
+if(total === 0){
 
 return;
 
 }
 
 
-/* ZONES */
+/* -----------------------------------------------
+   ZONES
+------------------------------------------------ */
 
-const low=
+const low =
 (
-counts[0]+
-counts[1]+
+counts[0] +
+counts[1] +
 counts[2]
-)/total*100;
+) /
+total *
+100;
 
 
-const high=
+const high =
 (
-counts[7]+
-counts[8]+
+counts[7] +
+counts[8] +
 counts[9]
-)/total*100;
+) /
+total *
+100;
 
 
 document.getElementById(
 "zoneLow"
-).innerText=
-low.toFixed(1)+"%";
+).innerText =
+low.toFixed(1) +
+"%";
 
 
 document.getElementById(
 "zoneHigh"
-).innerText=
-high.toFixed(1)+"%";
+).innerText =
+high.toFixed(1) +
+"%";
 
 
-/* =========================================
+/* -----------------------------------------------
    RANK DIGITS
-========================================= */
+------------------------------------------------ */
 
-const ranked=
-counts
-.map(function(count,index){
+const ranked =
+counts.map(function(count,index){
 
 return{
 digit:index,
 count:count
 };
 
-})
-.sort(function(a,b){
+});
 
-if(b.count!==a.count){
 
-return b.count-a.count;
+ranked.sort(function(a,b){
+
+if(
+b.count !== a.count
+){
+
+return b.count -
+a.count;
 
 }
 
-return a.digit-b.digit;
+return a.digit -
+b.digit;
 
 });
 
 
-const strongest=
+const strongest =
 ranked[0].digit;
 
-
-const second=
+const second =
 ranked[1].digit;
 
 
 document.getElementById(
 "strongest"
-).innerText=
+).innerText =
 strongest;
-
 
 document.getElementById(
 "second"
-).innerText=
+).innerText =
 second;
 
 
-/* =========================================
-   RECENT ENTRY SEQUENCE
-========================================= */
+/* -----------------------------------------------
+   ENTRY SEQUENCES
+------------------------------------------------ */
 
-let overEntry=false;
+let overEntry = false;
 
-let underEntry=false;
+let underEntry = false;
 
 
-if(digitHistory.length>=2){
+if(
+digitHistory.length >= 2
+){
 
-const previous=
+const previous =
 digitHistory[
-digitHistory.length-2
+digitHistory.length - 2
 ];
 
-const latest=
+const latest =
 digitHistory[
-digitHistory.length-1
+digitHistory.length - 1
 ];
 
 
-/* OVER 2: 0 -> 2 OR 2 -> 0 */
+/*
+   OVER 2:
+   0 -> 2
+   OR
+   2 -> 0
+*/
 
 if(
 (
-previous===0 &&
-latest===2
+previous === 0 &&
+latest === 2
 )
 ||
 (
-previous===2 &&
-latest===0
+previous === 2 &&
+latest === 0
 )
 ){
 
-overEntry=true;
+overEntry = true;
 
 }
 
 
-/* UNDER 7: 7 -> 9 OR 9 -> 7 */
+/*
+   UNDER 7:
+   7 -> 9
+   OR
+   9 -> 7
+*/
 
 if(
 (
-previous===7 &&
-latest===9
+previous === 7 &&
+latest === 9
 )
 ||
 (
-previous===9 &&
-latest===7
+previous === 9 &&
+latest === 7
 )
 ){
 
-underEntry=true;
+underEntry = true;
 
 }
 
 }
 
 
-const overText=
+/* -----------------------------------------------
+   DISPLAY ENTRY
+------------------------------------------------ */
+
+const overText =
 document.getElementById(
 "overSequence"
 );
 
-
-const underText=
+const underText =
 document.getElementById(
 "underSequence"
 );
@@ -1079,81 +1510,89 @@ document.getElementById(
 
 if(overEntry){
 
-overText.innerText=
+overText.innerText =
 "✅ 0 ↔ 2 CONFIRMED";
 
-overText.className="good";
+overText.className =
+"good";
 
 }else{
 
-overText.innerText=
+overText.innerText =
 "❌ Waiting for 0 ↔ 2";
 
-overText.className="wait";
+overText.className =
+"wait";
 
 }
 
 
 if(underEntry){
 
-underText.innerText=
+underText.innerText =
 "✅ 7 ↔ 9 CONFIRMED";
 
-underText.className="good";
+underText.className =
+"good";
 
 }else{
 
-underText.innerText=
+underText.innerText =
 "❌ Waiting for 7 ↔ 9";
 
-underText.className="wait";
+underText.className =
+"wait";
 
 }
 
 
-/* =========================================
+/* -----------------------------------------------
    STRONGEST DIGIT RULES
-========================================= */
+------------------------------------------------ */
+
 
 /*
-OVER 2:
-strongest + second strongest
-must both be odd 5,7,9
+   OVER 2:
+   strongest + second strongest
+   must BOTH be 5, 7 or 9.
 */
 
-const overStrong=
+const overStrong =
 [5,7,9].includes(strongest) &&
 [5,7,9].includes(second);
 
 
 /*
-UNDER 7:
-strongest + second strongest
-must both be even 0,2,4
+   UNDER 7:
+   strongest + second strongest
+   must BOTH be 0, 2 or 4.
 */
 
-const underStrong=
+const underStrong =
 [0,2,4].includes(strongest) &&
 [0,2,4].includes(second);
 
 
-/* =========================================
-   FINAL STRATEGY
-========================================= */
+/* -----------------------------------------------
+   SIGNAL
+------------------------------------------------ */
 
-const signal=
+const signal =
 document.getElementById(
 "signal"
 );
 
-signal.className="signal";
+signal.className =
+"signal";
 
 
-/* Need 100 ticks */
+/*
+   Require 100 ticks
+*/
 
-if(total<100){
+if(total < 100){
 
-signal.innerText=
+signal.innerText =
 "⏳ COLLECTING 100 TICKS";
 
 return;
@@ -1161,20 +1600,20 @@ return;
 }
 
 
-/* =========================================
+/* -----------------------------------------------
    OVER 2
-========================================= */
+------------------------------------------------ */
 
 if(
-low>=30 &&
+low >= 30 &&
 overEntry &&
 overStrong
 ){
 
-signal.className=
+signal.className =
 "signal green";
 
-signal.innerText=
+signal.innerText =
 "🟢 OVER 2 ENTRY";
 
 return;
@@ -1182,20 +1621,20 @@ return;
 }
 
 
-/* =========================================
+/* -----------------------------------------------
    UNDER 7
-========================================= */
+------------------------------------------------ */
 
 if(
-high>=30 &&
+high >= 30 &&
 underEntry &&
 underStrong
 ){
 
-signal.className=
+signal.className =
 "signal green";
 
-signal.innerText=
+signal.innerText =
 "🟢 UNDER 7 ENTRY";
 
 return;
@@ -1203,29 +1642,29 @@ return;
 }
 
 
-/* =========================================
+/* -----------------------------------------------
    WAIT
-========================================= */
+------------------------------------------------ */
 
-signal.className=
+signal.className =
 "signal yellow";
 
-signal.innerText=
+signal.innerText =
 "⏸️ WAIT";
 
 }
 
 
-/* =========================================
-   BOT CONTROLS
-========================================= */
+/* -----------------------------------------------------
+   BOT BUTTONS
+----------------------------------------------------- */
 
 function startBot(){
 
-botRunning=true;
+botRunning = true;
 
 setStatus(
-"🟢 BOT RUNNING • SIGNAL MODE"
+"🟢 SIGNAL BOT RUNNING"
 );
 
 }
@@ -1233,18 +1672,18 @@ setStatus(
 
 function stopBot(){
 
-botRunning=false;
+botRunning = false;
 
 setStatus(
-"⛔ BOT STOPPED"
+"⛔ SIGNAL BOT STOPPED"
 );
 
 }
 
 
-/* =========================================
-   START CONNECTION
-========================================= */
+/* -----------------------------------------------------
+   START
+----------------------------------------------------- */
 
 connect();
 
