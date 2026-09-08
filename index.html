@@ -1,16 +1,198 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MellyFX Trading Bot</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MellyFX Trading Bot</title>
+
+<style>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background: #0b1220;
+  color: white;
+  padding: 20px;
+}
+
+.container {
+  max-width: 500px;
+  margin: auto;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.header h1 {
+  font-size: 28px;
+}
+
+.header p {
+  color: #9ca3af;
+  margin-top: 8px;
+}
+
+.card {
+  background: #111827;
+  border-radius: 15px;
+  padding: 20px;
+  margin-bottom: 15px;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+  color: #d1d5db;
+}
+
+input, select {
+  width: 100%;
+  padding: 13px;
+  border-radius: 8px;
+  border: none;
+  margin-bottom: 15px;
+  font-size: 16px;
+}
+
+button {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  margin-top: 8px;
+  cursor: pointer;
+}
+
+.start {
+  background: #16a34a;
+  color: white;
+}
+
+.stop {
+  background: #dc2626;
+  color: white;
+}
+
+.status {
+  text-align: center;
+  padding: 12px;
+  border-radius: 8px;
+  background: #1f2937;
+  margin-top: 10px;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.stat {
+  background: #1f2937;
+  padding: 15px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.stat span {
+  display: block;
+  color: #9ca3af;
+  font-size: 13px;
+  margin-bottom: 5px;
+}
+
+.stat strong {
+  font-size: 20px;
+}
+</style>
 </head>
 
 <body>
-  <h1>🚀 MellyFX Trading Bot</h1>
-  <p>Your trading dashboard</p>
 
-  <button>START BOT</button>
-  <button>STOP BOT</button>
+<div class="container">
+
+  <div class="header">
+    <h1>🚀 MellyFX Trading Bot</h1>
+    <p>Your trading dashboard</p>
+  </div>
+
+  <div class="card">
+
+    <label>Market</label>
+    <select>
+      <option>Volatility 10 Index</option>
+      <option>Volatility 25 Index</option>
+      <option>Volatility 50 Index</option>
+      <option>Volatility 75 Index</option>
+      <option>Volatility 100 Index</option>
+    </select>
+
+    <label>Stake Amount</label>
+    <input type="number" value="1" min="0.35" step="0.01">
+
+    <label>Prediction Digit</label>
+    <input type="number" min="0" max="9" placeholder="Enter digit">
+
+    <button class="start" onclick="startBot()">▶ START BOT</button>
+    <button class="stop" onclick="stopBot()">⏹ STOP BOT</button>
+
+    <div class="status" id="status">
+      Bot Status: <strong>Stopped</strong>
+    </div>
+
+  </div>
+
+  <div class="card">
+
+    <div class="stats">
+
+      <div class="stat">
+        <span>Wins</span>
+        <strong id="wins">0</strong>
+      </div>
+
+      <div class="stat">
+        <span>Losses</span>
+        <strong id="losses">0</strong>
+      </div>
+
+      <div class="stat">
+        <span>Profit/Loss</span>
+        <strong id="profit">0.00</strong>
+      </div>
+
+      <div class="stat">
+        <span>Trades</span>
+        <strong id="trades">0</strong>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+
+function startBot() {
+  document.getElementById("status").innerHTML =
+    'Bot Status: <strong>Running</strong>';
+}
+
+function stopBot() {
+  document.getElementById("status").innerHTML =
+    'Bot Status: <strong>Stopped</strong>';
+}
+
+</script>
+
 </body>
 </html>
