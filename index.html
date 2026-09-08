@@ -414,12 +414,14 @@ connect,
    REQUEST ACTIVE MARKETS
 ========================================= */
 
-function requestMarkets(){
+   function requestMarkets(){
 
-if(
-!ws ||
-ws.readyState!==WebSocket.OPEN
-){
+  ws.send(JSON.stringify({
+    active_symbols:"brief",
+    req_id:1
+  }));
+
+}
 
 return;
 
