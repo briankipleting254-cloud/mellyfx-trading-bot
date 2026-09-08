@@ -1,124 +1,513 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>MellyFX Deriv Test</title>
+<title>MellyFX Digit Zone Bot</title>
 
 <style>
+*{box-sizing:border-box}
+
 body{
+margin:0;
 background:#07111f;
-color:white;
-font-family:Arial;
-padding:20px
+color:#fff;
+font-family:Arial,sans-serif
 }
+
+.container{
+max-width:520px;
+margin:auto;
+padding:16px
+}
+
+h1{
+text-align:center;
+margin:8px 0
+}
+
+.sub{
+text-align:center;
+color:#9fb0c5;
+margin-bottom:18px
+}
+
 .card{
 background:#101d2d;
-padding:20px;
 border-radius:15px;
-margin-top:20px
+padding:16px;
+margin-bottom:14px
 }
-#status{
-font-size:22px;
-font-weight:bold;
-margin-bottom:15px
+
+label{
+display:block;
+margin:10px 0 6px;
+color:#b9c7d8
 }
-#log{
-background:#050b12;
-padding:15px;
-border-radius:10px;
-font-size:13px;
-word-break:break-word;
-line-height:1.6
-}
-button{
+
+select,input,button{
 width:100%;
-padding:14px;
-margin-top:15px;
+padding:13px;
 border:0;
 border-radius:9px;
-font-size:16px;
+font-size:16px
+}
+
+select,input{
+background:#1a2a3d;
+color:white
+}
+
+button{
+margin-top:10px;
 font-weight:bold
+}
+
+.start{
+background:#16b66a;
+color:white
+}
+
+.stop{
+background:#d94b4b;
+color:white
+}
+
+.status{
+margin-top:10px;
+padding:12px;
+background:#18283b;
+border-radius:9px;
+text-align:center;
+word-break:break-word
+}
+
+.price{
+font-size:28px;
+text-align:center;
+margin:10px
+}
+
+.latest{
+text-align:center;
+color:#9fb0c5
+}
+
+.digit{
+font-size:48px;
+font-weight:bold;
+text-align:center
+}
+
+.grid{
+display:grid;
+grid-template-columns:repeat(5,1fr);
+gap:7px
+}
+
+.box{
+background:#19293b;
+padding:9px 3px;
+border-radius:8px;
+text-align:center;
+font-size:13px
+}
+
+.signal{
+text-align:center;
+font-size:20px;
+font-weight:bold;
+padding:16px;
+border-radius:10px;
+background:#18283b
+}
+
+.green{
+background:#116b46
+}
+
+.yellow{
+background:#765d12
+}
+
+.small{
+font-size:12px;
+color:#91a4bb;
+text-align:center
+}
+
+.entry{
+line-height:1.8
+}
+
+.good{
+color:#35e08a;
+font-weight:bold
+}
+
+.wait{
+color:#ffc857;
+font-weight:bold
+}
+
+.debug{
+background:#08131f;
+border-radius:8px;
+padding:10px;
+font-size:12px;
+color:#9fb0c5;
+word-break:break-word;
+line-height:1.5
 }
 </style>
 </head>
 
 <body>
 
-<h1>🔧 MellyFX Deriv Test</h1>
+<div class="container">
+
+<h1>📊 MellyFX Digit Zone Bot</h1>
+
+<div class="sub">
+Deriv Digit Strategy • 100 Tick Analysis
+</div>
+
 
 <div class="card">
 
-<div id="status">
-Starting...
-</div>
+<label>Volatility Market</label>
 
-<div id="log">
-Preparing connection...
-</div>
+<select id="market">
+<option>Loading markets...</option>
+</select>
 
-<button onclick="testLegacy()">
-TEST DERIV CONNECTION
+<label>Stake</label>
+
+<input
+id="stake"
+type="number"
+value="1"
+min="0.35"
+>
+
+<label>Prediction Digit</label>
+
+<input
+id="prediction"
+type="number"
+value="2"
+min="0"
+max="9"
+>
+
+<button
+class="start"
+onclick="startBot()">
+START BOT
 </button>
 
+<button
+class="stop"
+onclick="stopBot()">
+STOP BOT
+</button>
+
+<div id="status" class="status">
+🔄 Starting...
 </div>
+
+</div>
+
+
+<div class="card">
+
+<div class="latest">
+LIVE PRICE
+</div>
+
+<div id="price" class="price">
+--
+</div>
+
+<div class="latest">
+LATEST DIGIT
+</div>
+
+<div id="latestDigit" class="digit">
+-
+</div>
+
+</div>
+
+
+<div class="card">
+
+<h3>
+Digit Frequency — Last 100
+</h3>
+
+<div id="digitGrid" class="grid">
+</div>
+
+</div>
+
+
+<div class="card">
+
+<h3>
+Zone Analysis
+</h3>
+
+<p>
+0–2 Combined:
+<b id="zoneLow">0%</b>
+</p>
+
+<p>
+7–9 Combined:
+<b id="zoneHigh">0%</b>
+</p>
+
+<p>
+Strongest Digit:
+<b id="strongest">-</b>
+</p>
+
+<p>
+Second Strongest:
+<b id="second">-</b>
+</p>
+
+</div>
+
+
+<div class="card">
+
+<h3>
+Entry Confirmation
+</h3>
+
+<div class="entry">
+
+<p>
+<b>OVER 2:</b>
+<span
+id="overSequence"
+class="wait">
+Waiting for 0 ↔ 2
+</span>
+</p>
+
+<p>
+<b>UNDER 7:</b>
+<span
+id="underSequence"
+class="wait">
+Waiting for 7 ↔ 9
+</span>
+</p>
+
+</div>
+
+</div>
+
+
+<div class="card">
+
+<h3>
+🎯 Strategy Signal
+</h3>
+
+<div
+id="signal"
+class="signal">
+⏳ CONNECTING
+</div>
+
+</div>
+
+
+<div class="card">
+
+<h3>
+🔧 Connection Diagnostic
+</h3>
+
+<div
+id="debug"
+class="debug">
+Starting connection...
+</div>
+
+</div>
+
+
+<div class="card">
+
+<div class="small">
+PUBLIC MARKET DATA • SIGNAL MODE ONLY • NO AUTOMATIC TRADES
+</div>
+
+</div>
+
+</div>
+
 
 <script>
 
-let ws;
-
-const status =
-document.getElementById("status");
-
-const log =
-document.getElementById("log");
+/* ==================================================
+   MELLYFX DIGIT ZONE
+   SIGNAL ONLY
+================================================== */
 
 
-function write(text){
+/* ==================================================
+   CONNECTION ENDPOINTS
+================================================== */
 
-log.innerHTML +=
-"<br>" + text;
+const ENDPOINTS = [
+
+"wss://api.derivws.com/trading/v1/options/ws/public",
+
+"wss://ws.binaryws.com/websockets/v3"
+
+];
+
+
+let endpointIndex = 0;
+
+let ws = null;
+
+let reconnectTimer = null;
+
+let reconnectCount = 0;
+
+let markets = [];
+
+let currentSymbol = "";
+
+let currentPipSize = null;
+
+let digitHistory = [];
+
+let botRunning = false;
+
+let manualStop = false;
+
+
+/* ==================================================
+   UI
+================================================== */
+
+function setStatus(text){
+
+document.getElementById(
+"status"
+).innerText=text;
 
 }
 
 
-function testLegacy(){
+function setDebug(text){
+
+document.getElementById(
+"debug"
+).innerText=text;
+
+}
+
+
+/* ==================================================
+   CONNECT
+================================================== */
+
+function connect(){
+
+manualStop=false;
+
+clearTimeout(
+reconnectTimer
+);
+
 
 if(ws){
 
 try{
+
+ws.onclose=null;
+
 ws.close();
+
 }catch(e){}
+
+ws=null;
 
 }
 
 
-status.innerText =
-"🔄 Connecting...";
+const endpoint =
+ENDPOINTS[
+endpointIndex
+];
 
-log.innerHTML =
-"Opening Deriv WebSocket...";
 
-
-ws =
-new WebSocket(
-"wss://ws.binaryws.com/websockets/v3"
+setStatus(
+"🔄 Connecting..."
 );
 
 
-ws.onopen = function(){
+setDebug(
+"Trying endpoint: "+
+endpoint
+);
 
-status.innerText =
-"🟢 CONNECTED";
 
-write(
-"SUCCESS: WebSocket opened."
+try{
+
+ws =
+new WebSocket(
+endpoint
+);
+
+}catch(error){
+
+setDebug(
+"WebSocket creation error: "+
+error.message
+);
+
+tryNextEndpoint();
+
+return;
+
+}
+
+
+/* ==================================================
+   OPEN
+================================================== */
+
+ws.onopen=function(){
+
+reconnectCount=0;
+
+setStatus(
+"🟢 Connected • Loading markets..."
+);
+
+setDebug(
+"Connected successfully: "+
+endpoint
 );
 
 
 /*
-Request only active symbols.
-No product_type.
+   Ask for active symbols.
+
+   This is public market data.
 */
+
+try{
 
 ws.send(
 JSON.stringify({
@@ -130,49 +519,185 @@ req_id:1
 })
 );
 
+}catch(error){
+
+setDebug(
+"Request error: "+
+error.message
+);
+
+}
+
 };
 
 
-ws.onmessage =
-function(event){
+/* ==================================================
+   MESSAGE
+================================================== */
 
-write(
-"RESPONSE RECEIVED:"
-);
-
-write(
-event.data
-);
-
+ws.onmessage=function(event){
 
 let data;
 
 try{
 
 data =
-JSON.parse(event.data);
+JSON.parse(
+event.data
+);
 
-}catch(e){
+}catch(error){
 
-return;
-
-}
-
-
-if(data.error){
-
-status.innerText =
-"⚠️ DERIV ERROR";
-
-write(
-"Error: " +
-data.error.message
+setDebug(
+"Received invalid JSON."
 );
 
 return;
 
 }
 
+
+/*
+   Always show errors.
+*/
+
+if(data.error){
+
+setStatus(
+"⚠️ Deriv Error"
+);
+
+setDebug(
+"Code: "+
+(data.error.code||"")+
+" | "+
+(data.error.message||"")
+);
+
+return;
+
+}
+
+
+handleMessage(data);
+
+};
+
+
+/* ==================================================
+   ERROR
+================================================== */
+
+ws.onerror=function(){
+
+setDebug(
+"WebSocket error from: "+
+endpoint
+);
+
+};
+
+
+/* ==================================================
+   CLOSE
+================================================== */
+
+ws.onclose=function(event){
+
+if(manualStop){
+
+return;
+
+}
+
+
+setStatus(
+"🔴 Disconnected"
+);
+
+setDebug(
+"Endpoint closed. Code: "+
+event.code+
+" | Reason: "+
+(event.reason||"none")
+);
+
+
+/*
+   Try the other endpoint.
+*/
+
+tryNextEndpoint();
+
+};
+
+}
+
+
+/* ==================================================
+   TRY NEXT ENDPOINT
+================================================== */
+
+function tryNextEndpoint(){
+
+if(manualStop){
+
+return;
+
+}
+
+
+endpointIndex++;
+
+if(
+endpointIndex >=
+ENDPOINTS.length
+){
+
+endpointIndex=0;
+
+}
+
+
+reconnectCount++;
+
+clearTimeout(
+reconnectTimer
+);
+
+
+const delay =
+Math.min(
+2000+
+(reconnectCount*1000),
+10000
+);
+
+
+setStatus(
+"🔄 Reconnecting..."
+);
+
+
+reconnectTimer =
+setTimeout(
+connect,
+delay
+);
+
+}
+
+
+/* ==================================================
+   HANDLE MESSAGE
+================================================== */
+
+function handleMessage(data){
+
+
+/* ----------------------------------------------
+   ACTIVE SYMBOLS
+------------------------------------------------ */
 
 if(
 data.msg_type ===
@@ -180,66 +705,1028 @@ data.msg_type ===
 ){
 
 const list =
-data.active_symbols || [];
+Array.isArray(
+data.active_symbols
+)
+?
+data.active_symbols
+:
+[];
 
-status.innerText =
-"🟢 CONNECTED — " +
-list.length +
-" MARKETS RECEIVED";
 
-write(
-"Markets received successfully."
+/*
+   Accept both old and current names.
+*/
+
+markets =
+list.filter(
+function(item){
+
+const symbol =
+String(
+item.symbol ||
+item.underlying_symbol ||
+""
 );
 
-write(
-"First market: " +
-JSON.stringify(
-list[0] || {}
+const name =
+String(
+item.display_name ||
+item.underlying_symbol_name ||
+""
+);
+
+const market =
+String(
+item.market ||
+""
+);
+
+return(
+
+/volatility/i.test(name)
+
+||
+
+/volatility/i.test(market)
+
+||
+
+/HZ[0-9]+V/i.test(symbol)
+
+||
+
+/^[0-9]+V$/i.test(symbol)
+
+);
+
+});
+
+
+setDebug(
+"Deriv returned "+
+list.length+
+" markets. Matching Volatility: "+
+markets.length
+);
+
+
+populateMarkets();
+
+return;
+
+}
+
+
+/* ----------------------------------------------
+   HISTORY
+------------------------------------------------ */
+
+if(
+data.msg_type ===
+"history"
+){
+
+if(data.history){
+
+processHistory(data);
+
+}
+
+return;
+
+}
+
+
+/* ----------------------------------------------
+   LIVE TICK
+------------------------------------------------ */
+
+if(
+data.msg_type ===
+"tick"
+){
+
+if(
+data.tick &&
+(
+data.tick.symbol ===
+currentSymbol
+||
+data.tick.underlying_symbol ===
+currentSymbol
+)
+){
+
+processTick(
+data.tick
+);
+
+}
+
+return;
+
+}
+
+}
+
+
+/* ==================================================
+   MARKET DROPDOWN
+================================================== */
+
+function populateMarkets(){
+
+const select =
+document.getElementById(
+"market"
+);
+
+select.innerHTML="";
+
+
+if(
+markets.length === 0
+){
+
+select.innerHTML =
+"<option>"+
+"No Volatility markets found"+
+"</option>";
+
+setStatus(
+"⚠️ No Volatility markets found"
+);
+
+return;
+
+}
+
+
+markets.forEach(
+function(item){
+
+const symbol =
+item.symbol ||
+item.underlying_symbol;
+
+const name =
+item.display_name ||
+item.underlying_symbol_name ||
+symbol;
+
+
+if(!symbol){
+
+return;
+
+}
+
+
+const option =
+document.createElement(
+"option"
+);
+
+option.value =
+symbol;
+
+option.textContent =
+name+
+" ("+
+symbol+
+")";
+
+select.appendChild(
+option
+);
+
+});
+
+
+currentSymbol =
+markets[0].symbol ||
+markets[0].underlying_symbol;
+
+
+select.value =
+currentSymbol;
+
+
+setStatus(
+"🟢 Market loaded • "+
+currentSymbol
+);
+
+
+subscribeMarket(
+currentSymbol
+);
+
+}
+
+
+/* ==================================================
+   MARKET CHANGE
+================================================== */
+
+document
+.getElementById("market")
+.addEventListener(
+"change",
+function(){
+
+if(this.value){
+
+subscribeMarket(
+this.value
+);
+
+}
+
+}
+);
+
+
+/* ==================================================
+   SUBSCRIBE MARKET
+================================================== */
+
+function subscribeMarket(
+symbol
+){
+
+if(
+!ws ||
+ws.readyState !==
+WebSocket.OPEN
+){
+
+setStatus(
+"🔴 Connection not ready"
+);
+
+return;
+
+}
+
+
+currentSymbol =
+symbol;
+
+digitHistory=[];
+
+currentPipSize=null;
+
+
+/*
+   Load 100 ticks.
+*/
+
+ws.send(
+JSON.stringify({
+
+ticks_history:
+symbol,
+
+count:
+100,
+
+end:
+"latest",
+
+style:
+"ticks",
+
+req_id:
+10
+
+})
+);
+
+
+/*
+   Subscribe to live ticks.
+*/
+
+ws.send(
+JSON.stringify({
+
+ticks:
+symbol,
+
+subscribe:
+1,
+
+req_id:
+11
+
+})
+);
+
+
+setStatus(
+"🟢 LIVE • "+
+symbol
+);
+
+
+setDebug(
+"Loading 100 historical ticks..."
+);
+
+}
+
+
+/* ==================================================
+   HISTORY
+================================================== */
+
+function processHistory(
+data
+){
+
+const prices =
+data.history.prices ||
+[];
+
+currentPipSize =
+data.history.pip_size;
+
+
+digitHistory=[];
+
+
+prices.forEach(
+function(price){
+
+const digit =
+extractDigit(
+price,
+currentPipSize
+);
+
+if(
+digit >= 0 &&
+digit <= 9
+){
+
+digitHistory.push(
+digit
+);
+
+}
+
+});
+
+
+if(
+digitHistory.length >
+100
+){
+
+digitHistory =
+digitHistory.slice(-100);
+
+}
+
+
+if(prices.length){
+
+document.getElementById(
+"price"
+).innerText =
+prices[
+prices.length-1
+];
+
+}
+
+
+if(
+digitHistory.length
+){
+
+document.getElementById(
+"latestDigit"
+).innerText =
+digitHistory[
+digitHistory.length-1
+];
+
+}
+
+
+setDebug(
+"100-tick history loaded. Live digits active."
+);
+
+
+updateAnalysis();
+
+}
+
+
+/* ==================================================
+   LIVE TICK
+================================================== */
+
+function processTick(
+tick
+){
+
+document.getElementById(
+"price"
+).innerText =
+tick.quote;
+
+
+const digit =
+extractDigit(
+tick.quote,
+tick.pip_size ||
+currentPipSize
+);
+
+
+if(
+digit < 0 ||
+digit > 9
+){
+
+return;
+
+}
+
+
+document.getElementById(
+"latestDigit"
+).innerText =
+digit;
+
+
+digitHistory.push(
+digit
+);
+
+
+if(
+digitHistory.length >
+100
+){
+
+digitHistory.shift();
+
+}
+
+
+updateAnalysis();
+
+}
+
+
+/* ==================================================
+   EXTRACT LAST DIGIT
+================================================== */
+
+function extractDigit(
+price,
+pipSize
+){
+
+if(
+price === undefined ||
+price === null
+){
+
+return -1;
+
+}
+
+
+let decimals=0;
+
+
+if(
+typeof pipSize ===
+"number" &&
+pipSize > 0
+){
+
+decimals =
+Math.max(
+0,
+Math.round(
+-Math.log10(
+pipSize
+)
 )
 );
 
 }
 
-};
+
+const raw =
+String(price);
 
 
-ws.onerror =
-function(){
+if(
+decimals === 0 &&
+raw.includes(".")
+){
 
-status.innerText =
-"🔴 WEBSOCKET ERROR";
+const part =
+raw.split(".")[1];
 
-write(
-"Browser reported a WebSocket error."
-);
+if(part){
 
-};
+decimals =
+part.length;
 
-
-ws.onclose =
-function(event){
-
-status.innerText =
-"🔴 DISCONNECTED";
-
-write(
-"Close code: " +
-event.code
-);
-
-write(
-"Close reason: " +
-(event.reason || "none")
-);
-
-};
+}
 
 }
 
 
-/* Automatically test */
+const formatted =
+decimals > 0
+?
+Number(price)
+.toFixed(decimals)
+:
+raw;
 
-testLegacy();
+
+const clean =
+formatted.replace(
+/[^0-9]/g,
+""
+);
+
+
+if(!clean){
+
+return -1;
+
+}
+
+
+return parseInt(
+clean.charAt(
+clean.length-1
+),
+10
+);
+
+}
+
+
+/* ==================================================
+   ANALYSIS
+================================================== */
+
+function updateAnalysis(){
+
+const counts =
+Array(10).fill(0);
+
+
+digitHistory.forEach(
+function(d){
+
+if(
+d >= 0 &&
+d <= 9
+){
+
+counts[d]++;
+
+}
+
+});
+
+
+const total =
+digitHistory.length;
+
+
+/* ----------------------------------------------
+   DIGIT GRID
+------------------------------------------------ */
+
+const grid =
+document.getElementById(
+"digitGrid"
+);
+
+grid.innerHTML="";
+
+
+for(
+let i=0;
+i<10;
+i++
+){
+
+const percentage =
+total
+?
+(counts[i]/total)*100
+:
+0;
+
+
+const box =
+document.createElement(
+"div"
+);
+
+box.className =
+"box";
+
+
+box.innerHTML =
+"<b>"+
+i+
+"</b><br>"+
+percentage.toFixed(1)+
+"%";
+
+
+grid.appendChild(
+box
+);
+
+}
+
+
+if(
+total === 0
+){
+
+return;
+
+}
+
+
+/* ----------------------------------------------
+   ZONES
+------------------------------------------------ */
+
+const low =
+(
+counts[0]+
+counts[1]+
+counts[2]
+)
+/
+total
+*
+100;
+
+
+const high =
+(
+counts[7]+
+counts[8]+
+counts[9]
+)
+/
+total
+*
+100;
+
+
+document.getElementById(
+"zoneLow"
+).innerText =
+low.toFixed(1)+
+"%";
+
+
+document.getElementById(
+"zoneHigh"
+).innerText =
+high.toFixed(1)+
+"%";
+
+
+/* ----------------------------------------------
+   RANKING
+------------------------------------------------ */
+
+const ranked =
+counts.map(
+function(count,index){
+
+return{
+digit:index,
+count:count
+};
+
+});
+
+
+ranked.sort(
+function(a,b){
+
+if(
+b.count !==
+a.count
+){
+
+return b.count-
+a.count;
+
+}
+
+return a.digit-
+b.digit;
+
+});
+
+
+const strongest =
+ranked[0].digit;
+
+const second =
+ranked[1].digit;
+
+
+document.getElementById(
+"strongest"
+).innerText =
+strongest;
+
+
+document.getElementById(
+"second"
+).innerText =
+second;
+
+
+/* ----------------------------------------------
+   ENTRY SEQUENCES
+------------------------------------------------ */
+
+let overEntry=false;
+
+let underEntry=false;
+
+
+if(
+total >= 2
+){
+
+const previous =
+digitHistory[
+total-2
+];
+
+const latest =
+digitHistory[
+total-1
+];
+
+
+/*
+   OVER 2:
+   0 -> 2
+   OR
+   2 -> 0
+*/
+
+overEntry =
+(
+previous === 0 &&
+latest === 2
+)
+||
+(
+previous === 2 &&
+latest === 0
+);
+
+
+/*
+   UNDER 7:
+   7 -> 9
+   OR
+   9 -> 7
+*/
+
+underEntry =
+(
+previous === 7 &&
+latest === 9
+)
+||
+(
+previous === 9 &&
+latest === 7
+);
+
+}
+
+
+/* ----------------------------------------------
+   DISPLAY
+------------------------------------------------ */
+
+const overText =
+document.getElementById(
+"overSequence"
+);
+
+const underText =
+document.getElementById(
+"underSequence"
+);
+
+
+if(overEntry){
+
+overText.innerText =
+"✅ 0 ↔ 2 CONFIRMED";
+
+overText.className =
+"good";
+
+}else{
+
+overText.innerText =
+"❌ Waiting for 0 ↔ 2";
+
+overText.className =
+"wait";
+
+}
+
+
+if(underEntry){
+
+underText.innerText =
+"✅ 7 ↔ 9 CONFIRMED";
+
+underText.className =
+"good";
+
+}else{
+
+underText.innerText =
+"❌ Waiting for 7 ↔ 9";
+
+underText.className =
+"wait";
+
+}
+
+
+/* ----------------------------------------------
+   STRONGEST DIGIT CONDITIONS
+------------------------------------------------ */
+
+const overStrong =
+[5,7,9].includes(strongest)
+&&
+[5,7,9].includes(second);
+
+
+const underStrong =
+[0,2,4].includes(strongest)
+&&
+[0,2,4].includes(second);
+
+
+/* ----------------------------------------------
+   SIGNAL
+------------------------------------------------ */
+
+const signal =
+document.getElementById(
+"signal"
+);
+
+signal.className =
+"signal";
+
+
+if(
+total < 100
+){
+
+signal.innerText =
+"⏳ COLLECTING 100 TICKS";
+
+return;
+
+}
+
+
+/* ----------------------------------------------
+   OVER 2
+------------------------------------------------ */
+
+if(
+low >= 30
+&&
+overEntry
+&&
+overStrong
+){
+
+signal.className =
+"signal green";
+
+signal.innerText =
+"🟢 OVER 2 ENTRY";
+
+return;
+
+}
+
+
+/* ----------------------------------------------
+   UNDER 7
+------------------------------------------------ */
+
+if(
+high >= 30
+&&
+underEntry
+&&
+underStrong
+){
+
+signal.className =
+"signal green";
+
+signal.innerText =
+"🟢 UNDER 7 ENTRY";
+
+return;
+
+}
+
+
+/* ----------------------------------------------
+   WAIT
+------------------------------------------------ */
+
+signal.className =
+"signal yellow";
+
+signal.innerText =
+"⏸️ WAIT";
+
+}
+
+
+/* ==================================================
+   BUTTONS
+================================================== */
+
+function startBot(){
+
+botRunning=true;
+
+setStatus(
+"🟢 SIGNAL BOT RUNNING"
+);
+
+}
+
+
+function stopBot(){
+
+botRunning=false;
+
+manualStop=true;
+
+clearTimeout(
+reconnectTimer
+);
+
+if(ws){
+
+try{
+ws.close();
+}catch(e){}
+
+}
+
+setStatus(
+"⛔ BOT STOPPED"
+);
+
+}
+
+
+/* ==================================================
+   START
+================================================== */
+
+connect();
 
 </script>
 
