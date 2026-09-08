@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>MellyFX Digit Zone Bot</title>
+<title>MellyFX Digit Zone</title>
 
 <style>
 *{box-sizing:border-box}
@@ -16,33 +16,37 @@ font-family:Arial,sans-serif
 }
 
 .container{
-max-width:520px;
+max-width:540px;
 margin:auto;
-padding:16px
+padding:14px
 }
 
 h1{
 text-align:center;
-margin:8px 0
+margin:5px 0;
+font-size:26px
 }
 
-.sub{
+.subtitle{
 text-align:center;
 color:#9fb0c5;
-margin-bottom:18px
+font-size:13px;
+margin-bottom:15px
 }
 
 .card{
 background:#101d2d;
 border-radius:15px;
-padding:16px;
-margin-bottom:14px
+padding:15px;
+margin-bottom:13px;
+box-shadow:0 4px 15px rgba(0,0,0,.18)
 }
 
 label{
 display:block;
-margin:10px 0 6px;
-color:#b9c7d8
+color:#aebdd0;
+font-size:14px;
+margin:9px 0 5px
 }
 
 select,input,button{
@@ -55,48 +59,53 @@ font-size:16px
 
 select,input{
 background:#1a2a3d;
-color:white
+color:white;
+outline:none
 }
 
 button{
-margin-top:10px;
-font-weight:bold
+margin-top:9px;
+font-weight:bold;
+cursor:pointer
 }
 
 .start{
-background:#16b66a;
-color:white
+background:#14b866;
+color:#fff
 }
 
 .stop{
-background:#d94b4b;
-color:white
+background:#d94d4d;
+color:#fff
 }
 
 .status{
-margin-top:10px;
-padding:12px;
 background:#18283b;
+padding:11px;
 border-radius:9px;
 text-align:center;
-word-break:break-word
+margin-top:10px;
+font-size:14px
 }
 
 .price{
-font-size:28px;
+font-size:29px;
+font-weight:bold;
 text-align:center;
-margin:10px
+margin:8px
 }
 
 .latest{
 text-align:center;
-color:#9fb0c5
+color:#91a4bb;
+font-size:12px
 }
 
 .digit{
-font-size:48px;
+text-align:center;
+font-size:50px;
 font-weight:bold;
-text-align:center
+margin:2px
 }
 
 .grid{
@@ -107,41 +116,78 @@ gap:7px
 
 .box{
 background:#19293b;
-padding:9px 3px;
 border-radius:8px;
+padding:9px 3px;
 text-align:center;
 font-size:13px
 }
 
-.signal{
-text-align:center;
-font-size:20px;
-font-weight:bold;
-padding:16px;
-border-radius:10px;
-background:#18283b
+.box b{
+font-size:17px
 }
 
-.green{
-background:#116b46
+.zone{
+display:flex;
+gap:8px
 }
 
-.yellow{
-background:#765d12
-}
-
-.small{
-font-size:12px;
-color:#91a4bb;
+.zoneBox{
+flex:1;
+background:#18283b;
+padding:12px;
+border-radius:9px;
 text-align:center
 }
 
-.entry{
-line-height:1.8
+.zoneTitle{
+font-size:13px;
+color:#aebdd0
+}
+
+.zoneValue{
+font-size:24px;
+font-weight:bold;
+margin-top:4px
+}
+
+.strategy{
+border-radius:12px;
+padding:15px;
+margin-bottom:12px
+}
+
+.over{
+background:#102d2a
+}
+
+.under{
+background:#202338
+}
+
+.strategy h3{
+margin:0 0 10px
+}
+
+.row{
+display:flex;
+justify-content:space-between;
+gap:8px;
+padding:5px 0;
+border-bottom:1px solid rgba(255,255,255,.06);
+font-size:14px
+}
+
+.row:last-child{
+border-bottom:0
 }
 
 .good{
-color:#35e08a;
+color:#38df8a;
+font-weight:bold
+}
+
+.bad{
+color:#ff6565;
 font-weight:bold
 }
 
@@ -150,14 +196,79 @@ color:#ffc857;
 font-weight:bold
 }
 
+.signal{
+text-align:center;
+font-size:23px;
+font-weight:bold;
+padding:17px;
+border-radius:11px;
+background:#263448
+}
+
+.signal.green{
+background:#116b46
+}
+
+.signal.yellow{
+background:#765d12
+}
+
+.signal.red{
+background:#702d36
+}
+
+.strength{
+text-align:center;
+margin-top:9px;
+font-weight:bold;
+font-size:15px
+}
+
+.stats{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:8px
+}
+
+.stat{
+background:#18283b;
+padding:12px 5px;
+border-radius:9px;
+text-align:center
+}
+
+.statTitle{
+font-size:11px;
+color:#91a4bb
+}
+
+.statValue{
+font-size:20px;
+font-weight:bold;
+margin-top:3px
+}
+
 .debug{
 background:#08131f;
 border-radius:8px;
 padding:10px;
-font-size:12px;
-color:#9fb0c5;
+font-size:11px;
+color:#91a4bb;
 word-break:break-word;
 line-height:1.5
+}
+
+.small{
+text-align:center;
+color:#778ba2;
+font-size:11px;
+line-height:1.5
+}
+
+.reset{
+background:#34445a;
+color:white;
+font-size:14px
 }
 </style>
 </head>
@@ -166,12 +277,14 @@ line-height:1.5
 
 <div class="container">
 
-<h1>📊 MellyFX Digit Zone Bot</h1>
+<h1>📊 MellyFX Digit Zone</h1>
 
-<div class="sub">
-Deriv Digit Strategy • 100 Tick Analysis
+<div class="subtitle">
+100-Tick Digit Analysis • Signal Only
 </div>
 
+
+<!-- CONTROL PANEL -->
 
 <div class="card">
 
@@ -181,13 +294,14 @@ Deriv Digit Strategy • 100 Tick Analysis
 <option>Loading markets...</option>
 </select>
 
-<label>Stake</label>
+<label>Stake Reference</label>
 
 <input
 id="stake"
 type="number"
 value="1"
 min="0.35"
+step="0.01"
 >
 
 <label>Prediction Digit</label>
@@ -203,21 +317,29 @@ max="9"
 <button
 class="start"
 onclick="startBot()">
-START BOT
+▶ START ANALYSIS
 </button>
 
 <button
 class="stop"
 onclick="stopBot()">
-STOP BOT
+■ STOP ANALYSIS
+</button>
+
+<button
+class="reset"
+onclick="resetStats()">
+↻ RESET SESSION STATS
 </button>
 
 <div id="status" class="status">
-🔄 Starting...
+🔄 Connecting...
 </div>
 
 </div>
 
+
+<!-- LIVE DATA -->
 
 <div class="card">
 
@@ -240,11 +362,39 @@ LATEST DIGIT
 </div>
 
 
+<!-- SESSION STATS -->
+
 <div class="card">
 
-<h3>
-Digit Frequency — Last 100
-</h3>
+<h3>📈 Session Statistics</h3>
+
+<div class="stats">
+
+<div class="stat">
+<div class="statTitle">TICKS</div>
+<div id="tickCount" class="statValue">0</div>
+</div>
+
+<div class="stat">
+<div class="statTitle">SIGNALS</div>
+<div id="signalCount" class="statValue">0</div>
+</div>
+
+<div class="stat">
+<div class="statTitle">LAST SIGNAL</div>
+<div id="lastSignal" class="statValue">--</div>
+</div>
+
+</div>
+
+</div>
+
+
+<!-- DIGIT FREQUENCY -->
+
+<div class="card">
+
+<h3>🔢 Digit Frequency — Last 100</h3>
 
 <div id="digitGrid" class="grid">
 </div>
@@ -252,90 +402,167 @@ Digit Frequency — Last 100
 </div>
 
 
+<!-- ZONE PERCENTAGES -->
+
 <div class="card">
 
-<h3>
-Zone Analysis
-</h3>
+<h3>📊 Zone Percentages</h3>
 
-<p>
-0–2 Combined:
-<b id="zoneLow">0%</b>
-</p>
+<div class="zone">
 
-<p>
-7–9 Combined:
-<b id="zoneHigh">0%</b>
-</p>
+<div class="zoneBox">
 
-<p>
-Strongest Digit:
-<b id="strongest">-</b>
-</p>
+<div class="zoneTitle">
+0–2 COMBINED
+</div>
 
-<p>
-Second Strongest:
-<b id="second">-</b>
-</p>
+<div id="zoneLow" class="zoneValue">
+0%
+</div>
 
 </div>
 
+<div class="zoneBox">
 
-<div class="card">
+<div class="zoneTitle">
+7–9 COMBINED
+</div>
 
-<h3>
-Entry Confirmation
-</h3>
+<div id="zoneHigh" class="zoneValue">
+0%
+</div>
 
-<div class="entry">
-
-<p>
-<b>OVER 2:</b>
-<span
-id="overSequence"
-class="wait">
-Waiting for 0 ↔ 2
-</span>
-</p>
-
-<p>
-<b>UNDER 7:</b>
-<span
-id="underSequence"
-class="wait">
-Waiting for 7 ↔ 9
-</span>
-</p>
+</div>
 
 </div>
 
 </div>
 
 
+<!-- OVER 2 -->
+
 <div class="card">
 
-<h3>
-🎯 Strategy Signal
-</h3>
+<div class="strategy over">
+
+<h3>🟢 OVER 2</h3>
+
+<div class="row">
+<span>0–2 Combined</span>
+<b id="overZone">0%</b>
+</div>
+
+<div class="row">
+<span>Required</span>
+<b>≥ 30%</b>
+</div>
+
+<div class="row">
+<span>Strongest</span>
+<b id="overStrongest">-</b>
+</div>
+
+<div class="row">
+<span>Second Strongest</span>
+<b id="overSecond">-</b>
+</div>
+
+<div class="row">
+<span>Strong Digits</span>
+<b>5 / 7 / 9</b>
+</div>
+
+<div class="row">
+<span>Entry Pattern</span>
+<b id="overEntry">Waiting</b>
+</div>
+
+<div class="row">
+<span>Conditions</span>
+<b id="overConditions">WAIT</b>
+</div>
+
+</div>
+
+</div>
+
+
+<!-- UNDER 7 -->
+
+<div class="card">
+
+<div class="strategy under">
+
+<h3>🔵 UNDER 7</h3>
+
+<div class="row">
+<span>7–9 Combined</span>
+<b id="underZone">0%</b>
+</div>
+
+<div class="row">
+<span>Required</span>
+<b>≥ 30%</b>
+</div>
+
+<div class="row">
+<span>Strongest</span>
+<b id="underStrongest">-</b>
+</div>
+
+<div class="row">
+<span>Second Strongest</span>
+<b id="underSecond">-</b>
+</div>
+
+<div class="row">
+<span>Strong Digits</span>
+<b>0 / 2 / 4</b>
+</div>
+
+<div class="row">
+<span>Entry Pattern</span>
+<b id="underEntry">Waiting</b>
+</div>
+
+<div class="row">
+<span>Conditions</span>
+<b id="underConditions">WAIT</b>
+</div>
+
+</div>
+
+</div>
+
+
+<!-- MAIN SIGNAL -->
+
+<div class="card">
+
+<h3>🎯 FINAL STRATEGY SIGNAL</h3>
 
 <div
 id="signal"
 class="signal">
-⏳ CONNECTING
+⏳ COLLECTING 100 TICKS
+</div>
+
+<div
+id="strength"
+class="strength">
+Signal strength: --
 </div>
 
 </div>
 
+
+<!-- CONNECTION -->
 
 <div class="card">
 
-<h3>
-🔧 Connection Diagnostic
-</h3>
+<h3>🔧 Connection</h3>
 
-<div
-id="debug"
-class="debug">
+<div id="debug" class="debug">
 Starting connection...
 </div>
 
@@ -345,7 +572,8 @@ Starting connection...
 <div class="card">
 
 <div class="small">
-PUBLIC MARKET DATA • SIGNAL MODE ONLY • NO AUTOMATIC TRADES
+MellyFX Digit Zone<br>
+Market analysis only — no automatic trades are placed.
 </div>
 
 </div>
@@ -355,15 +583,15 @@ PUBLIC MARKET DATA • SIGNAL MODE ONLY • NO AUTOMATIC TRADES
 
 <script>
 
-/* ==================================================
+/* =====================================================
    MELLYFX DIGIT ZONE
-   SIGNAL ONLY
-================================================== */
+   SIGNAL-ONLY VERSION
+===================================================== */
 
 
-/* ==================================================
-   CONNECTION ENDPOINTS
-================================================== */
+/* =====================================================
+   WORKING CONNECTION
+===================================================== */
 
 const ENDPOINTS = [
 
@@ -382,6 +610,10 @@ let reconnectTimer = null;
 
 let reconnectCount = 0;
 
+let manualStop = false;
+
+let botRunning = false;
+
 let markets = [];
 
 let currentSymbol = "";
@@ -390,20 +622,20 @@ let currentPipSize = null;
 
 let digitHistory = [];
 
-let botRunning = false;
+let totalSignals = 0;
 
-let manualStop = false;
+let lastSignal = "--";
 
 
-/* ==================================================
-   UI
-================================================== */
+/* =====================================================
+   UI HELPERS
+===================================================== */
 
 function setStatus(text){
 
 document.getElementById(
 "status"
-).innerText=text;
+).innerText = text;
 
 }
 
@@ -412,67 +644,60 @@ function setDebug(text){
 
 document.getElementById(
 "debug"
-).innerText=text;
+).innerText = text;
 
 }
 
 
-/* ==================================================
+/* =====================================================
    CONNECT
-================================================== */
+===================================================== */
 
 function connect(){
 
-manualStop=false;
+manualStop = false;
 
 clearTimeout(
 reconnectTimer
 );
 
-
 if(ws){
 
 try{
 
-ws.onclose=null;
+ws.onclose = null;
 
 ws.close();
 
 }catch(e){}
 
-ws=null;
+ws = null;
 
 }
-
 
 const endpoint =
 ENDPOINTS[
 endpointIndex
 ];
 
-
 setStatus(
 "🔄 Connecting..."
 );
 
-
 setDebug(
-"Trying endpoint: "+
+"Connecting to: "+
 endpoint
 );
-
 
 try{
 
 ws =
-new WebSocket(
-endpoint
-);
+new WebSocket(endpoint);
 
 }catch(error){
 
 setDebug(
-"WebSocket creation error: "+
+"WebSocket error: "+
 error.message
 );
 
@@ -483,29 +708,17 @@ return;
 }
 
 
-/* ==================================================
-   OPEN
-================================================== */
+ws.onopen = function(){
 
-ws.onopen=function(){
-
-reconnectCount=0;
+reconnectCount = 0;
 
 setStatus(
 "🟢 Connected • Loading markets..."
 );
 
 setDebug(
-"Connected successfully: "+
-endpoint
+"Connected successfully."
 );
-
-
-/*
-   Ask for active symbols.
-
-   This is public market data.
-*/
 
 try{
 
@@ -522,7 +735,7 @@ req_id:1
 }catch(error){
 
 setDebug(
-"Request error: "+
+"Market request error: "+
 error.message
 );
 
@@ -531,78 +744,54 @@ error.message
 };
 
 
-/* ==================================================
-   MESSAGE
-================================================== */
-
-ws.onmessage=function(event){
+ws.onmessage = function(event){
 
 let data;
 
 try{
 
 data =
-JSON.parse(
-event.data
-);
+JSON.parse(event.data);
 
 }catch(error){
-
-setDebug(
-"Received invalid JSON."
-);
 
 return;
 
 }
-
-
-/*
-   Always show errors.
-*/
 
 if(data.error){
 
 setStatus(
-"⚠️ Deriv Error"
+"⚠️ Deriv API Error"
 );
 
 setDebug(
-"Code: "+
-(data.error.code||"")+
-" | "+
-(data.error.message||"")
+"Error: "+
+(
+data.error.message ||
+"Unknown error"
+)
 );
 
 return;
 
 }
-
 
 handleMessage(data);
 
 };
 
 
-/* ==================================================
-   ERROR
-================================================== */
-
-ws.onerror=function(){
+ws.onerror = function(){
 
 setDebug(
-"WebSocket error from: "+
-endpoint
+"WebSocket error detected."
 );
 
 };
 
 
-/* ==================================================
-   CLOSE
-================================================== */
-
-ws.onclose=function(event){
+ws.onclose = function(event){
 
 if(manualStop){
 
@@ -610,22 +799,19 @@ return;
 
 }
 
-
 setStatus(
 "🔴 Disconnected"
 );
 
 setDebug(
-"Endpoint closed. Code: "+
+"Connection closed. Code: "+
 event.code+
 " | Reason: "+
-(event.reason||"none")
+(
+event.reason ||
+"none"
+)
 );
-
-
-/*
-   Try the other endpoint.
-*/
 
 tryNextEndpoint();
 
@@ -634,9 +820,9 @@ tryNextEndpoint();
 }
 
 
-/* ==================================================
-   TRY NEXT ENDPOINT
-================================================== */
+/* =====================================================
+   RECONNECT
+===================================================== */
 
 function tryNextEndpoint(){
 
@@ -646,7 +832,6 @@ return;
 
 }
 
-
 endpointIndex++;
 
 if(
@@ -654,30 +839,22 @@ endpointIndex >=
 ENDPOINTS.length
 ){
 
-endpointIndex=0;
+endpointIndex = 0;
 
 }
 
-
 reconnectCount++;
+
+const delay =
+Math.min(
+2000 +
+reconnectCount*1000,
+10000
+);
 
 clearTimeout(
 reconnectTimer
 );
-
-
-const delay =
-Math.min(
-2000+
-(reconnectCount*1000),
-10000
-);
-
-
-setStatus(
-"🔄 Reconnecting..."
-);
-
 
 reconnectTimer =
 setTimeout(
@@ -688,16 +865,14 @@ delay
 }
 
 
-/* ==================================================
-   HANDLE MESSAGE
-================================================== */
+/* =====================================================
+   MESSAGE HANDLER
+===================================================== */
 
 function handleMessage(data){
 
 
-/* ----------------------------------------------
-   ACTIVE SYMBOLS
------------------------------------------------- */
+/* ACTIVE SYMBOLS */
 
 if(
 data.msg_type ===
@@ -712,11 +887,6 @@ data.active_symbols
 data.active_symbols
 :
 [];
-
-
-/*
-   Accept both old and current names.
-*/
 
 markets =
 list.filter(
@@ -762,14 +932,12 @@ return(
 
 });
 
-
 setDebug(
-"Deriv returned "+
+"Markets received: "+
 list.length+
-" markets. Matching Volatility: "+
+" | Volatility markets: "+
 markets.length
 );
-
 
 populateMarkets();
 
@@ -778,9 +946,7 @@ return;
 }
 
 
-/* ----------------------------------------------
-   HISTORY
------------------------------------------------- */
+/* HISTORY */
 
 if(
 data.msg_type ===
@@ -798,9 +964,7 @@ return;
 }
 
 
-/* ----------------------------------------------
-   LIVE TICK
------------------------------------------------- */
+/* LIVE TICK */
 
 if(
 data.msg_type ===
@@ -818,9 +982,7 @@ currentSymbol
 )
 ){
 
-processTick(
-data.tick
-);
+processTick(data.tick);
 
 }
 
@@ -831,9 +993,9 @@ return;
 }
 
 
-/* ==================================================
-   MARKET DROPDOWN
-================================================== */
+/* =====================================================
+   MARKET LIST
+===================================================== */
 
 function populateMarkets(){
 
@@ -842,17 +1004,14 @@ document.getElementById(
 "market"
 );
 
-select.innerHTML="";
-
+select.innerHTML = "";
 
 if(
 markets.length === 0
 ){
 
 select.innerHTML =
-"<option>"+
-"No Volatility markets found"+
-"</option>";
+"<option>No Volatility markets found</option>";
 
 setStatus(
 "⚠️ No Volatility markets found"
@@ -875,13 +1034,11 @@ item.display_name ||
 item.underlying_symbol_name ||
 symbol;
 
-
 if(!symbol){
 
 return;
 
 }
-
 
 const option =
 document.createElement(
@@ -908,16 +1065,13 @@ currentSymbol =
 markets[0].symbol ||
 markets[0].underlying_symbol;
 
-
 select.value =
 currentSymbol;
 
-
 setStatus(
-"🟢 Market loaded • "+
+"🟢 LIVE • "+
 currentSymbol
 );
-
 
 subscribeMarket(
 currentSymbol
@@ -926,9 +1080,9 @@ currentSymbol
 }
 
 
-/* ==================================================
+/* =====================================================
    MARKET CHANGE
-================================================== */
+===================================================== */
 
 document
 .getElementById("market")
@@ -936,25 +1090,19 @@ document
 "change",
 function(){
 
-if(this.value){
-
 subscribeMarket(
 this.value
 );
 
 }
-
-}
 );
 
 
-/* ==================================================
-   SUBSCRIBE MARKET
-================================================== */
+/* =====================================================
+   SUBSCRIBE
+===================================================== */
 
-function subscribeMarket(
-symbol
-){
+function subscribeMarket(symbol){
 
 if(
 !ws ||
@@ -962,26 +1110,19 @@ ws.readyState !==
 WebSocket.OPEN
 ){
 
-setStatus(
-"🔴 Connection not ready"
-);
-
 return;
 
 }
 
-
 currentSymbol =
 symbol;
 
-digitHistory=[];
+digitHistory = [];
 
-currentPipSize=null;
+currentPipSize = null;
 
 
-/*
-   Load 100 ticks.
-*/
+/* HISTORY */
 
 ws.send(
 JSON.stringify({
@@ -1005,9 +1146,7 @@ req_id:
 );
 
 
-/*
-   Subscribe to live ticks.
-*/
+/* LIVE */
 
 ws.send(
 JSON.stringify({
@@ -1027,24 +1166,18 @@ req_id:
 
 setStatus(
 "🟢 LIVE • "+
-symbol
-);
-
-
-setDebug(
-"Loading 100 historical ticks..."
+symbol+
+" • 100-Tick Analysis"
 );
 
 }
 
 
-/* ==================================================
-   HISTORY
-================================================== */
+/* =====================================================
+   HISTORY PROCESSING
+===================================================== */
 
-function processHistory(
-data
-){
+function processHistory(data){
 
 const prices =
 data.history.prices ||
@@ -1053,9 +1186,7 @@ data.history.prices ||
 currentPipSize =
 data.history.pip_size;
 
-
-digitHistory=[];
-
+digitHistory = [];
 
 prices.forEach(
 function(price){
@@ -1071,14 +1202,11 @@ digit >= 0 &&
 digit <= 9
 ){
 
-digitHistory.push(
-digit
-);
+digitHistory.push(digit);
 
 }
 
 });
-
 
 if(
 digitHistory.length >
@@ -1089,7 +1217,6 @@ digitHistory =
 digitHistory.slice(-100);
 
 }
-
 
 if(prices.length){
 
@@ -1102,10 +1229,7 @@ prices.length-1
 
 }
 
-
-if(
-digitHistory.length
-){
+if(digitHistory.length){
 
 document.getElementById(
 "latestDigit"
@@ -1116,30 +1240,25 @@ digitHistory.length-1
 
 }
 
-
 setDebug(
-"100-tick history loaded. Live digits active."
+"100 historical ticks loaded. Waiting for live ticks."
 );
-
 
 updateAnalysis();
 
 }
 
 
-/* ==================================================
+/* =====================================================
    LIVE TICK
-================================================== */
+===================================================== */
 
-function processTick(
-tick
-){
+function processTick(tick){
 
 document.getElementById(
 "price"
 ).innerText =
 tick.quote;
-
 
 const digit =
 extractDigit(
@@ -1147,7 +1266,6 @@ tick.quote,
 tick.pip_size ||
 currentPipSize
 );
-
 
 if(
 digit < 0 ||
@@ -1158,17 +1276,12 @@ return;
 
 }
 
-
 document.getElementById(
 "latestDigit"
 ).innerText =
 digit;
 
-
-digitHistory.push(
-digit
-);
-
+digitHistory.push(digit);
 
 if(
 digitHistory.length >
@@ -1179,20 +1292,16 @@ digitHistory.shift();
 
 }
 
-
 updateAnalysis();
 
 }
 
 
-/* ==================================================
-   EXTRACT LAST DIGIT
-================================================== */
+/* =====================================================
+   LAST DIGIT
+===================================================== */
 
-function extractDigit(
-price,
-pipSize
-){
+function extractDigit(price,pipSize){
 
 if(
 price === undefined ||
@@ -1203,13 +1312,10 @@ return -1;
 
 }
 
-
-let decimals=0;
-
+let decimals = 0;
 
 if(
-typeof pipSize ===
-"number" &&
+typeof pipSize === "number" &&
 pipSize > 0
 ){
 
@@ -1217,18 +1323,14 @@ decimals =
 Math.max(
 0,
 Math.round(
--Math.log10(
-pipSize
-)
+-Math.log10(pipSize)
 )
 );
 
 }
 
-
 const raw =
 String(price);
-
 
 if(
 decimals === 0 &&
@@ -1247,15 +1349,12 @@ part.length;
 
 }
 
-
 const formatted =
 decimals > 0
 ?
-Number(price)
-.toFixed(decimals)
+Number(price).toFixed(decimals)
 :
 raw;
-
 
 const clean =
 formatted.replace(
@@ -1263,13 +1362,11 @@ formatted.replace(
 ""
 );
 
-
 if(!clean){
 
 return -1;
 
 }
-
 
 return parseInt(
 clean.charAt(
@@ -1281,15 +1378,14 @@ clean.length-1
 }
 
 
-/* ==================================================
-   ANALYSIS
-================================================== */
+/* =====================================================
+   MAIN ANALYSIS
+===================================================== */
 
 function updateAnalysis(){
 
 const counts =
 Array(10).fill(0);
-
 
 digitHistory.forEach(
 function(d){
@@ -1305,22 +1401,26 @@ counts[d]++;
 
 });
 
-
 const total =
 digitHistory.length;
 
 
-/* ----------------------------------------------
-   DIGIT GRID
------------------------------------------------- */
+/* TICK COUNTER */
+
+document.getElementById(
+"tickCount"
+).innerText =
+total;
+
+
+/* DIGIT GRID */
 
 const grid =
 document.getElementById(
 "digitGrid"
 );
 
-grid.innerHTML="";
-
+grid.innerHTML = "";
 
 for(
 let i=0;
@@ -1331,19 +1431,16 @@ i++
 const percentage =
 total
 ?
-(counts[i]/total)*100
+counts[i]/total*100
 :
 0;
-
 
 const box =
 document.createElement(
 "div"
 );
 
-box.className =
-"box";
-
+box.className = "box";
 
 box.innerHTML =
 "<b>"+
@@ -1351,7 +1448,6 @@ i+
 "</b><br>"+
 percentage.toFixed(1)+
 "%";
-
 
 grid.appendChild(
 box
@@ -1369,31 +1465,24 @@ return;
 }
 
 
-/* ----------------------------------------------
-   ZONES
------------------------------------------------- */
+/* ZONES */
 
 const low =
 (
 counts[0]+
 counts[1]+
 counts[2]
-)
-/
-total
-*
+) /
+total *
 100;
-
 
 const high =
 (
 counts[7]+
 counts[8]+
 counts[9]
-)
-/
-total
-*
+) /
+total *
 100;
 
 
@@ -1403,17 +1492,26 @@ document.getElementById(
 low.toFixed(1)+
 "%";
 
-
 document.getElementById(
 "zoneHigh"
 ).innerText =
 high.toFixed(1)+
 "%";
 
+document.getElementById(
+"overZone"
+).innerText =
+low.toFixed(1)+
+"%";
 
-/* ----------------------------------------------
-   RANKING
------------------------------------------------- */
+document.getElementById(
+"underZone"
+).innerText =
+high.toFixed(1)+
+"%";
+
+
+/* RANK DIGITS */
 
 const ranked =
 counts.map(
@@ -1426,7 +1524,6 @@ count:count
 
 });
 
-
 ranked.sort(
 function(a,b){
 
@@ -1435,13 +1532,11 @@ b.count !==
 a.count
 ){
 
-return b.count-
-a.count;
+return b.count-a.count;
 
 }
 
-return a.digit-
-b.digit;
+return a.digit-b.digit;
 
 });
 
@@ -1453,30 +1548,52 @@ const second =
 ranked[1].digit;
 
 
+/* OVER DISPLAY */
+
 document.getElementById(
-"strongest"
+"overStrongest"
 ).innerText =
 strongest;
 
-
 document.getElementById(
-"second"
+"overSecond"
 ).innerText =
 second;
 
 
-/* ----------------------------------------------
-   ENTRY SEQUENCES
------------------------------------------------- */
+/* UNDER DISPLAY */
 
-let overEntry=false;
+document.getElementById(
+"underStrongest"
+).innerText =
+strongest;
 
-let underEntry=false;
+document.getElementById(
+"underSecond"
+).innerText =
+second;
 
 
-if(
-total >= 2
-){
+/* STRONG DIGIT RULE */
+
+const overStrong =
+[5,7,9].includes(strongest)
+&&
+[5,7,9].includes(second);
+
+const underStrong =
+[0,2,4].includes(strongest)
+&&
+[0,2,4].includes(second);
+
+
+/* ENTRY */
+
+let overEntry = false;
+
+let underEntry = false;
+
+if(total >= 2){
 
 const previous =
 digitHistory[
@@ -1490,10 +1607,10 @@ total-1
 
 
 /*
-   OVER 2:
-   0 -> 2
-   OR
-   2 -> 0
+ OVER 2:
+ 0 -> 2
+ OR
+ 2 -> 0
 */
 
 overEntry =
@@ -1509,10 +1626,10 @@ latest === 0
 
 
 /*
-   UNDER 7:
-   7 -> 9
-   OR
-   9 -> 7
+ UNDER 7:
+ 7 -> 9
+ OR
+ 9 -> 7
 */
 
 underEntry =
@@ -1529,35 +1646,33 @@ latest === 7
 }
 
 
-/* ----------------------------------------------
-   DISPLAY
------------------------------------------------- */
+/* ENTRY DISPLAY */
 
-const overText =
+const overEntryEl =
 document.getElementById(
-"overSequence"
+"overEntry"
 );
 
-const underText =
+const underEntryEl =
 document.getElementById(
-"underSequence"
+"underEntry"
 );
 
 
 if(overEntry){
 
-overText.innerText =
-"✅ 0 ↔ 2 CONFIRMED";
+overEntryEl.innerText =
+"✅ CONFIRMED";
 
-overText.className =
+overEntryEl.className =
 "good";
 
 }else{
 
-overText.innerText =
-"❌ Waiting for 0 ↔ 2";
+overEntryEl.innerText =
+"❌ WAITING";
 
-overText.className =
+overEntryEl.className =
 "wait";
 
 }
@@ -1565,143 +1680,345 @@ overText.className =
 
 if(underEntry){
 
-underText.innerText =
-"✅ 7 ↔ 9 CONFIRMED";
+underEntryEl.innerText =
+"✅ CONFIRMED";
 
-underText.className =
+underEntryEl.className =
 "good";
 
 }else{
 
-underText.innerText =
-"❌ Waiting for 7 ↔ 9";
+underEntryEl.innerText =
+"❌ WAITING";
 
-underText.className =
+underEntryEl.className =
 "wait";
 
 }
 
 
-/* ----------------------------------------------
-   STRONGEST DIGIT CONDITIONS
------------------------------------------------- */
+/* CONDITIONS */
 
-const overStrong =
-[5,7,9].includes(strongest)
-&&
-[5,7,9].includes(second);
+const overZoneOK =
+low >= 30;
 
-
-const underStrong =
-[0,2,4].includes(strongest)
-&&
-[0,2,4].includes(second);
+const underZoneOK =
+high >= 30;
 
 
-/* ----------------------------------------------
-   SIGNAL
------------------------------------------------- */
+const overReady =
+total >= 100 &&
+overZoneOK &&
+overStrong &&
+overEntry;
+
+
+const underReady =
+total >= 100 &&
+underZoneOK &&
+underStrong &&
+underEntry;
+
+
+const overConditions =
+document.getElementById(
+"overConditions"
+);
+
+const underConditions =
+document.getElementById(
+"underConditions"
+);
+
+
+if(overReady){
+
+overConditions.innerText =
+"✅ ENTRY";
+
+overConditions.className =
+"good";
+
+}else{
+
+overConditions.innerText =
+"WAIT";
+
+overConditions.className =
+"wait";
+
+}
+
+
+if(underReady){
+
+underConditions.innerText =
+"✅ ENTRY";
+
+underConditions.className =
+"good";
+
+}else{
+
+underConditions.innerText =
+"WAIT";
+
+underConditions.className =
+"wait";
+
+}
+
+
+/* =====================================================
+   FINAL SIGNAL
+===================================================== */
+
+if(
+total < 100
+){
+
+showSignal(
+"⏳ COLLECTING 100 TICKS",
+"Signal strength: LOW",
+"yellow"
+);
+
+return;
+
+}
+
+
+if(overReady){
+
+showSignal(
+"🟢 OVER 2 ENTRY",
+"Signal strength: STRONG",
+"green"
+);
+
+return;
+
+}
+
+
+if(underReady){
+
+showSignal(
+"🔵 UNDER 7 ENTRY",
+"Signal strength: STRONG",
+"green"
+);
+
+return;
+
+}
+
+
+/* PARTIAL CONDITIONS */
+
+let scoreOver = 0;
+
+let scoreUnder = 0;
+
+if(overZoneOK)
+scoreOver++;
+
+if(overStrong)
+scoreOver++;
+
+if(overEntry)
+scoreOver++;
+
+
+if(underZoneOK)
+scoreUnder++;
+
+if(underStrong)
+scoreUnder++;
+
+if(underEntry)
+scoreUnder++;
+
+
+if(
+scoreOver >= 2 ||
+scoreUnder >= 2
+){
+
+showSignal(
+"🟡 SETUP FORMING",
+"Signal strength: MODERATE",
+"yellow"
+);
+
+}else{
+
+showSignal(
+"⏸️ WAIT",
+"Signal strength: WEAK",
+"yellow"
+);
+
+}
+
+}
+
+
+/* =====================================================
+   SIGNAL DISPLAY + ALERT
+===================================================== */
+
+function showSignal(
+text,
+strength,
+type
+){
 
 const signal =
 document.getElementById(
 "signal"
 );
 
-signal.className =
-"signal";
+const strengthEl =
+document.getElementById(
+"strength"
+);
 
+signal.className =
+"signal "+
+type;
+
+signal.innerText =
+text;
+
+strengthEl.innerText =
+strength;
+
+
+/*
+ Only count a real ENTRY.
+*/
 
 if(
-total < 100
+text.includes("ENTRY")
 ){
-
-signal.innerText =
-"⏳ COLLECTING 100 TICKS";
-
-return;
-
-}
-
-
-/* ----------------------------------------------
-   OVER 2
------------------------------------------------- */
 
 if(
-low >= 30
-&&
-overEntry
-&&
-overStrong
+lastSignal !== text
 ){
 
-signal.className =
-"signal green";
+totalSignals++;
 
-signal.innerText =
-"🟢 OVER 2 ENTRY";
+document.getElementById(
+"signalCount"
+).innerText =
+totalSignals;
 
-return;
+lastSignal =
+text;
+
+document.getElementById(
+"lastSignal"
+).innerText =
+text.includes("OVER")
+?
+"OVER 2"
+:
+"UNDER 7";
+
+beep();
+
+}
+
+}
 
 }
 
 
-/* ----------------------------------------------
-   UNDER 7
------------------------------------------------- */
+/* =====================================================
+   SOUND ALERT
+===================================================== */
 
-if(
-high >= 30
-&&
-underEntry
-&&
-underStrong
-){
+function beep(){
 
-signal.className =
-"signal green";
+try{
 
-signal.innerText =
-"🟢 UNDER 7 ENTRY";
+const AudioContext =
+window.AudioContext ||
+window.webkitAudioContext;
 
-return;
+const audio =
+new AudioContext();
+
+const oscillator =
+audio.createOscillator();
+
+const gain =
+audio.createGain();
+
+oscillator.connect(
+gain
+);
+
+gain.connect(
+audio.destination
+);
+
+oscillator.frequency.value =
+800;
+
+gain.gain.value =
+0.08;
+
+oscillator.start();
+
+setTimeout(
+function(){
+
+oscillator.stop();
+
+audio.close();
+
+},
+250
+);
+
+}catch(e){
+
+console.log(
+"Sound unavailable"
+);
+
+}
 
 }
 
 
-/* ----------------------------------------------
-   WAIT
------------------------------------------------- */
-
-signal.className =
-"signal yellow";
-
-signal.innerText =
-"⏸️ WAIT";
-
-}
-
-
-/* ==================================================
-   BUTTONS
-================================================== */
+/* =====================================================
+   START
+===================================================== */
 
 function startBot(){
 
-botRunning=true;
+botRunning = true;
 
 setStatus(
-"🟢 SIGNAL BOT RUNNING"
+"🟢 ANALYSIS RUNNING • "+
+currentSymbol
 );
 
 }
 
 
+/* =====================================================
+   STOP
+===================================================== */
+
 function stopBot(){
 
-botRunning=false;
+botRunning = false;
 
-manualStop=true;
+manualStop = true;
 
 clearTimeout(
 reconnectTimer
@@ -1710,21 +2027,61 @@ reconnectTimer
 if(ws){
 
 try{
+
 ws.close();
+
 }catch(e){}
 
 }
 
 setStatus(
-"⛔ BOT STOPPED"
+"⛔ ANALYSIS STOPPED"
 );
 
 }
 
 
-/* ==================================================
-   START
-================================================== */
+/* =====================================================
+   RESET
+===================================================== */
+
+function resetStats(){
+
+totalSignals = 0;
+
+lastSignal = "--";
+
+document.getElementById(
+"signalCount"
+).innerText =
+"0";
+
+document.getElementById(
+"lastSignal"
+).innerText =
+"--";
+
+}
+
+
+/* =====================================================
+   INITIALIZE
+===================================================== */
+
+for(
+let i=0;
+i<10;
+i++
+){
+
+document.getElementById(
+"digitGrid"
+).innerHTML +=
+"<div class='box'><b>"+
+i+
+"</b><br>0.0%</div>";
+
+}
 
 connect();
 
