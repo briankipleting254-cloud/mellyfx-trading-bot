@@ -1,117 +1,44 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MellyFX Trading Bot</title>
 
 <style>
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+body{
+  margin:0;
+  padding:20px;
+  background:#0b1220;
+  color:white;
+  font-family:Arial,sans-serif;
 }
-
-body {
-  font-family: Arial, sans-serif;
-  background: #0b1220;
-  color: white;
-  padding: 20px;
+.container{
+  max-width:500px;
+  margin:auto;
 }
-
-.container {
-  max-width: 500px;
-  margin: auto;
+.card{
+  background:#151f32;
+  padding:20px;
+  border-radius:15px;
+  margin-bottom:15px;
 }
-
-.header {
-  text-align: center;
-  margin-bottom: 25px;
+h1{text-align:center;}
+select,button{
+  width:100%;
+  padding:14px;
+  margin-top:10px;
+  border:0;
+  border-radius:8px;
+  font-size:16px;
 }
-
-.header h1 {
-  font-size: 28px;
+.start{background:#16a34a;color:white;}
+.stop{background:#dc2626;color:white;}
+.data{
+  font-size:18px;
+  margin:12px 0;
 }
-
-.header p {
-  color: #9ca3af;
-  margin-top: 8px;
-}
-
-.card {
-  background: #111827;
-  border-radius: 15px;
-  padding: 20px;
-  margin-bottom: 15px;
-}
-
-label {
-  display: block;
-  margin-bottom: 8px;
-  color: #d1d5db;
-}
-
-input, select {
-  width: 100%;
-  padding: 13px;
-  border-radius: 8px;
-  border: none;
-  margin-bottom: 15px;
-  font-size: 16px;
-}
-
-button {
-  width: 100%;
-  padding: 14px;
-  border: none;
-  border-radius: 8px;
-  font-size: 16px;
-  font-weight: bold;
-  margin-top: 8px;
-  cursor: pointer;
-}
-
-.start {
-  background: #16a34a;
-  color: white;
-}
-
-.stop {
-  background: #dc2626;
-  color: white;
-}
-
-.status {
-  text-align: center;
-  padding: 12px;
-  border-radius: 8px;
-  background: #1f2937;
-  margin-top: 10px;
-}
-
-.stats {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-.stat {
-  background: #1f2937;
-  padding: 15px;
-  border-radius: 10px;
-  text-align: center;
-}
-
-.stat span {
-  display: block;
-  color: #9ca3af;
-  font-size: 13px;
-  margin-bottom: 5px;
-}
-
-.stat strong {
-  font-size: 20px;
-}
+.green{color:#22c55e;}
+.red{color:#ef4444;}
 </style>
 </head>
 
@@ -119,78 +46,193 @@ button {
 
 <div class="container">
 
-  <div class="header">
-    <h1>🚀 MellyFX Trading Bot</h1>
-    <p>Your trading dashboard</p>
-  </div>
+<h1>🚀 MellyFX Trading Bot</h1>
 
-  <div class="card">
+<div class="card">
 
-    <label>Market</label>
-    <select>
-      <option>Volatility 10 Index</option>
-      <option>Volatility 25 Index</option>
-      <option>Volatility 50 Index</option>
-      <option>Volatility 75 Index</option>
-      <option>Volatility 100 Index</option>
-    </select>
+<div class="data">
+Connection:
+<strong id="connection">Connecting...</strong>
+</div>
 
-    <label>Stake Amount</label>
-    <input type="number" value="1" min="0.35" step="0.01">
+<label>Market</label>
 
-    <label>Prediction Digit</label>
-    <input type="number" min="0" max="9" placeholder="Enter digit">
+<select id="market">
+<option value="1HZ10V">Volatility 10 Index</option>
+<option value="1HZ25V">Volatility 25 Index</option>
+<option value="1HZ50V">Volatility 50 Index</option>
+<option value="1HZ75V">Volatility 75 Index</option>
+<option value="1HZ100V">Volatility 100 Index</option>
+</select>
 
-    <button class="start" onclick="startBot()">▶ START BOT</button>
-    <button class="stop" onclick="stopBot()">⏹ STOP BOT</button>
+<div class="data">
+Latest Price:
+<strong id="price">--</strong>
+</div>
 
-    <div class="status" id="status">
-      Bot Status: <strong>Stopped</strong>
-    </div>
+<div class="data">
+Latest Digit:
+<strong id="digit">--</strong>
+</div>
 
-  </div>
+<button class="start" onclick="startBot()">▶ START BOT</button>
+<button class="stop" onclick="stopBot()">⏹ STOP BOT</button>
 
-  <div class="card">
+<div class="data">
+Bot Status:
+<strong id="status">Stopped</strong>
+</div>
 
-    <div class="stats">
+</div>
 
-      <div class="stat">
-        <span>Wins</span>
-        <strong id="wins">0</strong>
-      </div>
+<div class="card">
 
-      <div class="stat">
-        <span>Losses</span>
-        <strong id="losses">0</strong>
-      </div>
+<h3>Digit Statistics</h3>
 
-      <div class="stat">
-        <span>Profit/Loss</span>
-        <strong id="profit">0.00</strong>
-      </div>
+<div id="stats">
+0: 0%<br>
+1: 0%<br>
+2: 0%<br>
+3: 0%<br>
+4: 0%<br>
+5: 0%<br>
+6: 0%<br>
+7: 0%<br>
+8: 0%<br>
+9: 0%
+</div>
 
-      <div class="stat">
-        <span>Trades</span>
-        <strong id="trades">0</strong>
-      </div>
-
-    </div>
-
-  </div>
+</div>
 
 </div>
 
 <script>
 
-function startBot() {
-  document.getElementById("status").innerHTML =
-    'Bot Status: <strong>Running</strong>';
+let ws;
+let digits = [];
+let running = false;
+
+function connect(){
+
+  ws = new WebSocket(
+    "wss://api.derivws.com/trading/v1/options/ws/public"
+  );
+
+  ws.onopen = function(){
+
+    document.getElementById("connection").textContent =
+      "🟢 Connected";
+
+    subscribe();
+  };
+
+  ws.onmessage = function(event){
+
+    const data = JSON.parse(event.data);
+
+    if(data.msg_type === "tick"){
+
+      const price = data.tick.quote;
+
+      document.getElementById("price").textContent = price;
+
+      const priceString = String(price);
+
+      const lastDigit =
+        Number(priceString.slice(-1));
+
+      document.getElementById("digit").textContent =
+        lastDigit;
+
+      digits.push(lastDigit);
+
+      if(digits.length > 100){
+        digits.shift();
+      }
+
+      updateStats();
+    }
+  };
+
+  ws.onerror = function(){
+
+    document.getElementById("connection").textContent =
+      "🔴 Connection Error";
+  };
+
+  ws.onclose = function(){
+
+    document.getElementById("connection").textContent =
+      "🔴 Disconnected";
+  };
 }
 
-function stopBot() {
-  document.getElementById("status").innerHTML =
-    'Bot Status: <strong>Stopped</strong>';
+function subscribe(){
+
+  const symbol =
+    document.getElementById("market").value;
+
+  ws.send(JSON.stringify({
+    ticks:symbol,
+    subscribe:1
+  }));
 }
+
+function updateStats(){
+
+  let counts =
+    [0,0,0,0,0,0,0,0,0,0];
+
+  digits.forEach(function(digit){
+    counts[digit]++;
+  });
+
+  let output = "";
+
+  for(let i=0;i<10;i++){
+
+    let percentage =
+      digits.length === 0
+      ? 0
+      : (counts[i] / digits.length * 100).toFixed(1);
+
+    output += i + ": " +
+      percentage + "%<br>";
+  }
+
+  document.getElementById("stats").innerHTML =
+    output;
+}
+
+function startBot(){
+
+  running = true;
+
+  document.getElementById("status").textContent =
+    "Running";
+}
+
+function stopBot(){
+
+  running = false;
+
+  document.getElementById("status").textContent =
+    "Stopped";
+}
+
+document.getElementById("market")
+.addEventListener("change", function(){
+
+  if(ws){
+    ws.close();
+  }
+
+  digits = [];
+
+  connect();
+});
+
+connect();
 
 </script>
 
